@@ -18,6 +18,7 @@ func (co Controllers) PostAddCustomerTransactions(c *gin.Context) {
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
 		c.JSON(400, gin.H{"errors": err.Error()})
+		return
 	}
 
 	payload := payloadTransactions{}
