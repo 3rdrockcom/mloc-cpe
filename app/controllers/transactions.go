@@ -3,28 +3,30 @@ package controllers
 import (
 	"strconv"
 
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
-	"github.com/gin-gonic/gin"
+
+	"github.com/labstack/echo"
 )
 
 type payloadTransactions struct {
 	Transactions []models.Transaction `json:"transactions" binding:"required"`
 }
 
-func (co Controllers) PostAddCustomerTransactions(c *gin.Context) {
+func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	var err error
 	db := co.DB.GetInstance()
 
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
-		c.JSON(400, gin.H{"errors": err.Error()})
-		return
+		c.JSON(400, helpers.H{"errors": err.Error()})
+		return nil
 	}
 
 	payload := payloadTransactions{}
-	if err = c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(400, gin.H{"errors": err.Error()})
-		return
+	if err = c.Bind(&payload); err != nil {
+		c.JSON(400, helpers.H{"errors": err.Error()})
+		return nil
 	}
 
 	transactions := payload.Transactions
@@ -33,18 +35,19 @@ func (co Controllers) PostAddCustomerTransactions(c *gin.Context) {
 		transactions[i].DateTime = transactions[i].Date.Time
 
 		if err = transactions[i].Validate(); err != nil {
-			c.JSON(400, gin.H{"errors": err.Error()})
-			return
+			c.JSON(400, helpers.H{"errors": err.Error()})
+			return nil
 		}
 	}
 
 	for i := range transactions {
 		err = db.Model(&transactions[i]).Insert()
 		if err != nil {
-			c.JSON(500, gin.H{"errors": err.Error()})
-			return
+			c.JSON(500, helpers.H{"errors": err.Error()})
+			return nil
 		}
 	}
 
 	c.JSON(200, transactions)
+	return nil
 }
