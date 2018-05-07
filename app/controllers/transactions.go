@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
@@ -19,13 +20,13 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
-		c.JSON(400, helpers.H{"errors": err.Error()})
+		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 		return nil
 	}
 
 	payload := payloadTransactions{}
 	if err = c.Bind(&payload); err != nil {
-		c.JSON(400, helpers.H{"errors": err.Error()})
+		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 		return nil
 	}
 
@@ -35,7 +36,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 		transactions[i].DateTime = transactions[i].Date.Time
 
 		if err = transactions[i].Validate(); err != nil {
-			c.JSON(400, helpers.H{"errors": err.Error()})
+			c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 			return nil
 		}
 	}
@@ -43,11 +44,11 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	for i := range transactions {
 		err = db.Model(&transactions[i]).Insert()
 		if err != nil {
-			c.JSON(500, helpers.H{"errors": err.Error()})
+			c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 			return nil
 		}
 	}
 
-	c.JSON(200, transactions)
+	c.JSON(http.StatusOK, transactions)
 	return nil
 }

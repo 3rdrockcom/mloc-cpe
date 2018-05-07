@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
@@ -17,7 +18,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
-		c.JSON(400, helpers.H{"errors": err.Error()})
+		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 		return nil
 	}
 
@@ -27,13 +28,13 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 		AndWhere(dbx.NewExp("`credit`>0")).
 		All(&transactions)
 	if err != nil {
-		c.JSON(500, helpers.H{"errors": err.Error()})
+		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}
 
 	p := profiler.New(transactions, 2)
 	res := p.Run()
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 	return nil
 }
