@@ -5,17 +5,16 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 
 	"github.com/labstack/echo"
 )
 
 func (co Controllers) PostAddCustomer(c echo.Context) error {
 	var err error
-	db := co.DB.GetInstance()
+	customer := new(models.Customer)
 
-	customer := models.Customer{}
-
-	if err = c.Bind(&customer); err != nil {
+	if err = c.Bind(customer); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 		return nil
 	}
@@ -25,8 +24,8 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 		return nil
 	}
 
-	err = db.Model(&customer).Insert()
-	if err != nil {
+	rc := new(repositories.Customers)
+	if err = rc.Create(customer); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}

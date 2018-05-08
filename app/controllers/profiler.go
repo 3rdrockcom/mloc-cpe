@@ -7,15 +7,14 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
 
-	dbx "github.com/go-ozzo/ozzo-dbx"
 	"github.com/labstack/echo"
 )
 
 func (co Controllers) GetCustomerProfile(c echo.Context) error {
 	var err error
-	db := co.DB.GetInstance()
 
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
@@ -40,12 +39,8 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 	}
 
 	transactions := models.Transactions{}
-	q := db.Select().
-		Where(dbx.HashExp{"customer_id": customerID}).
-		AndWhere(dbx.NewExp("`credit`>0")).
-		AndWhere(dbx.Between("datetime", startDate, endDate))
-	err = q.All(&transactions)
-	if err != nil {
+	rt := new(repositories.Transactions)
+	if transactions, err = rt.GetByDateRange(customerID, startDate, endDate); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}

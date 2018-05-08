@@ -6,6 +6,7 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 
 	"github.com/labstack/echo"
 )
@@ -16,7 +17,6 @@ type payloadTransactions struct {
 
 func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	var err error
-	db := co.DB.GetInstance()
 
 	customerID, err := strconv.Atoi(c.Param("customerID"))
 	if err != nil {
@@ -41,12 +41,10 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 		}
 	}
 
-	for i := range transactions {
-		err = db.Model(&transactions[i]).Insert()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
-			return nil
-		}
+	rt := new(repositories.Transactions)
+	if err = rt.Create(transactions); err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
+		return nil
 	}
 
 	c.JSON(http.StatusOK, transactions)
