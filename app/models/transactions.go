@@ -40,13 +40,15 @@ func (t Transactions) Separator(p float64) []Transactions {
 }
 
 type Transaction struct {
-	ID          int          `json:"id"`
-	CustomerID  int          `json:"customer_id" binding:"required"`
-	Description string       `json:"description" binding:"required"`
-	Credit      float64      `json:"credit" binding:"required"`
-	Debit       float64      `json:"debit" binding:"required"`
-	Date        helpers.Time `json:"date" binding:"required" db:"-"`
-	DateTime    time.Time    `json:"-" db:"datetime"`
+	ID             int          `json:"id"`
+	CustomerID     int          `json:"customer_id" binding:"required"`
+	Description    string       `json:"description" binding:"required"`
+	Credit         float64      `json:"credit" binding:"required"`
+	Debit          float64      `json:"debit" binding:"required"`
+	RunningBalance float64      `json:"running_balance"`
+	Balance        float64      `json:"balance"`
+	Date           helpers.Time `json:"date" binding:"required" db:"-"`
+	DateTime       time.Time    `json:"-" db:"datetime"`
 }
 
 func (t Transaction) TableName() string {
