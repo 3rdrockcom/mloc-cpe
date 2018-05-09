@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"sort"
 	"time"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
@@ -17,7 +18,6 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 	}
 
 	runningBalance := 0.0
-
 	lastTransaction, err := t.GetLastTransaction(customerID)
 	if err != nil && err != sql.ErrNoRows {
 		return err
@@ -25,8 +25,11 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 		runningBalance = lastTransaction.RunningBalance
 	}
 
+	sort.Sort(transactions)
+
 	transaction := new(models.Transaction)
-	for _, *transaction = range transactions {
+	for i := range transactions {
+		*transaction = transactions[i]
 		if transaction.DateTime.Before(lastTransaction.DateTime) || transaction.DateTime.Equal(lastTransaction.DateTime) {
 			continue
 		}
@@ -38,6 +41,22 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 		if err != nil {
 			tx.Rollback()
 			return err
+		}
+
+		if i+1 == len(transactions) {
+			customers := new(Customers)
+			customer, err := customers.Get(customerID)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+
+			customer.UpdatedAt = transaction.DateTime
+			err = tx.Model(customer).Update("UpdatedAt")
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
 		}
 	}
 
@@ -63,7 +82,6 @@ func (t *Transactions) GetByDateRange(customerID int, startDate, endDate time.Ti
 }
 
 func (t *Transactions) GetLastTransaction(customerID int) (transaction models.Transaction, err error) {
-
 	err = db.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		OrderBy("id DESC").
