@@ -32,7 +32,12 @@ func (p *Profiler) Run() Results {
 	tSplit := p.Transactions.Separator(p.separator)
 
 	for a := 0; a < len(tSplit); a++ {
-		transactions := tSplit[a]
+		transactions := models.Transactions{}
+		for _, transaction := range tSplit[a] {
+			if transaction.Credit > 0 {
+				transactions = append(transactions, transaction)
+			}
+		}
 
 		if len(transactions) == 0 {
 			break
