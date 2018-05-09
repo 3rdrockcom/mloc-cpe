@@ -40,7 +40,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 
 	transactions := models.Transactions{}
 	rt := new(repositories.Transactions)
-	if transactions, err = rt.GetByDateRange(customerID, startDate, endDate); err != nil {
+	if transactions, err = rt.GetAllByDateRange(customerID, startDate, endDate); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}

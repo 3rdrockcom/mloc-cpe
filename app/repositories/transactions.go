@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"database/sql"
 	"sort"
 	"time"
 
@@ -17,11 +16,20 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 		return err
 	}
 
-	runningBalance := 0.0
-	lastTransaction, err := t.GetLastTransaction(customerID)
-	if err != nil && err != sql.ErrNoRows {
+	customers := new(Customers)
+	customer, err := customers.Get(customerID)
+	if err != nil {
+		tx.Rollback()
 		return err
-	} else {
+	}
+
+	runningBalance := 0.0
+	lastTransaction := models.Transaction{}
+	if customer.LastTransactionID != 0 {
+		lastTransaction, err = t.Get(customerID, customer.LastTransactionID)
+		if err != nil {
+			return err
+		}
 		runningBalance = lastTransaction.RunningBalance
 	}
 
@@ -30,8 +38,11 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 	transaction := new(models.Transaction)
 	for i := range transactions {
 		*transaction = transactions[i]
-		if transaction.DateTime.Before(lastTransaction.DateTime) || transaction.DateTime.Equal(lastTransaction.DateTime) {
-			continue
+
+		if customer.LastTransactionID != 0 {
+			if transaction.DateTime.Before(lastTransaction.DateTime) || transaction.DateTime.Equal(lastTransaction.DateTime) {
+				continue
+			}
 		}
 
 		runningBalance = runningBalance + transaction.Credit - transaction.Debit
@@ -44,15 +55,8 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 		}
 
 		if i+1 == len(transactions) {
-			customers := new(Customers)
-			customer, err := customers.Get(customerID)
-			if err != nil {
-				tx.Rollback()
-				return err
-			}
-
-			customer.UpdatedAt = transaction.DateTime
-			err = tx.Model(customer).Update("UpdatedAt")
+			customer.LastTransactionID = transaction.ID
+			err = tx.Model(customer).Update("LastTransactionID")
 			if err != nil {
 				tx.Rollback()
 				return err
@@ -64,7 +68,15 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 	return nil
 }
 
-func (t *Transactions) Get(customerID int) (transactions models.Transactions, err error) {
+func (t *Transactions) Get(customerID int, transactionID int) (transaction models.Transaction, err error) {
+	err = db.Select().
+		Where(dbx.HashExp{"id": transactionID, "customer_id": customerID}).
+		One(&transaction)
+
+	return transaction, err
+}
+
+func (t *Transactions) GetAll(customerID int) (transactions models.Transactions, err error) {
 	err = db.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		All(&transactions)
@@ -72,20 +84,11 @@ func (t *Transactions) Get(customerID int) (transactions models.Transactions, er
 	return transactions, err
 }
 
-func (t *Transactions) GetByDateRange(customerID int, startDate, endDate time.Time) (transactions models.Transactions, err error) {
+func (t *Transactions) GetAllByDateRange(customerID int, startDate, endDate time.Time) (transactions models.Transactions, err error) {
 	err = db.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		AndWhere(dbx.Between("datetime", startDate, endDate)).
 		All(&transactions)
 
 	return transactions, err
-}
-
-func (t *Transactions) GetLastTransaction(customerID int) (transaction models.Transaction, err error) {
-	err = db.Select().
-		Where(dbx.HashExp{"customer_id": customerID}).
-		OrderBy("id DESC").
-		One(&transaction)
-
-	return transaction, err
 }

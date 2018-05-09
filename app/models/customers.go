@@ -1,8 +1,6 @@
 package models
 
 import (
-	"time"
-
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 )
@@ -10,11 +8,11 @@ import (
 type Customers []Customer
 
 type Customer struct {
-	ID        int       `json:"id"`
-	FirstName string    `json:"first_name" binding:"required"`
-	LastName  string    `json:"last_name" binding:"required"`
-	Email     string    `json:"email" binding:"required"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID                int    `json:"id"`
+	FirstName         string `json:"first_name" binding:"required"`
+	LastName          string `json:"last_name" binding:"required"`
+	Email             string `json:"email" binding:"required"`
+	LastTransactionID int    `json:"-"`
 }
 
 func (c Customer) TableName() string {
