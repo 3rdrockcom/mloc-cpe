@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 
 	"github.com/labstack/echo"
@@ -12,7 +11,15 @@ import (
 
 func (co Controllers) PostAddCustomer(c echo.Context) error {
 	var err error
-	customer := new(models.Customer)
+
+	customerID := c.Get("customerID").(int)
+
+	rc := new(repositories.Customers)
+	customer, err := rc.Get(customerID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
+		return nil
+	}
 
 	if err = c.Bind(customer); err != nil {
 		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
@@ -24,8 +31,7 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 		return nil
 	}
 
-	rc := new(repositories.Customers)
-	if err = rc.Create(customer); err != nil {
+	if err = rc.Update(customer); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}

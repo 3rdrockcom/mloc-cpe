@@ -5,6 +5,10 @@ CREATE TABLE `customers` (
   `first_name` varchar(80) NOT NULL,
   `last_name` varchar(80) NOT NULL,
   `email` varchar(255) NOT NULL,
+  `program_id` int(11) DEFAULT '1',
+  `program_customer_id` int(11) DEFAULT NULL,
+  `program_customer_mobile` varchar(50) DEFAULT NULL,
+  `cust_unique_id` varchar(100) DEFAULT NULL,
   `last_transaction_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

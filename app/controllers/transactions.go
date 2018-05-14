@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
@@ -19,11 +18,7 @@ type payloadTransactions struct {
 func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	var err error
 
-	customerID, err := strconv.Atoi(c.Param("customerID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
-	}
+	customerID := c.Get("customerID").(int)
 
 	payload := payloadTransactions{}
 	if err = c.Bind(&payload); err != nil {

@@ -2,26 +2,21 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
-	"github.com/jinzhu/now"
 
+	"github.com/jinzhu/now"
 	"github.com/labstack/echo"
 )
 
 func (co Controllers) GetCustomerProfile(c echo.Context) error {
 	var err error
 
-	customerID, err := strconv.Atoi(c.Param("customerID"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
-	}
+	customerID := c.Get("customerID").(int)
 
 	startDate, err := time.ParseInLocation(
 		"20060102",
