@@ -6,7 +6,7 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
+	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
 
 	"github.com/jinzhu/now"
@@ -35,8 +35,13 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 	}
 
 	transactions := models.Transactions{}
-	rt := new(repositories.Transactions)
-	if transactions, err = rt.GetAllByDateRange(customerID, startDate, now.New(endDate).EndOfDay()); err != nil {
+
+	sc, err := Customer.New(customerID)
+	if err != nil {
+		return err
+	}
+
+	if transactions, err = sc.Transactions().GetAllByDateRange(startDate, now.New(endDate).EndOfDay()); err != nil {
 		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
 		return nil
 	}

@@ -1,23 +1,26 @@
-package repositories
+package customer
 
 import (
 	"sort"
 	"time"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+
 	dbx "github.com/go-ozzo/ozzo-dbx"
 )
 
-type Transactions struct{}
+type Transactions struct {
+	cs *CustomerService
+}
 
-func (t *Transactions) Create(customerID int, transactions models.Transactions) (err error) {
-	tx, err := db.Begin()
+func (t *Transactions) Create(transactions models.Transactions) (err error) {
+	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 
-	customers := new(Customers)
-	customer, err := customers.Get(customerID)
+	customers := t.cs.Info()
+	customer, err := customers.Get()
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -26,7 +29,7 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 	runningBalance := 0.0
 	lastTransaction := models.Transaction{}
 	if customer.LastTransactionID != 0 {
-		lastTransaction, err = t.Get(customerID, customer.LastTransactionID)
+		lastTransaction, err = t.Get(customer.LastTransactionID)
 		if err != nil {
 			return err
 		}
@@ -68,24 +71,27 @@ func (t *Transactions) Create(customerID int, transactions models.Transactions) 
 	return nil
 }
 
-func (t *Transactions) Get(customerID int, transactionID int) (transaction models.Transaction, err error) {
-	err = db.Select().
+func (t *Transactions) Get(transactionID int) (transaction models.Transaction, err error) {
+	customerID := t.cs.CustomerID
+	err = DB.Select().
 		Where(dbx.HashExp{"id": transactionID, "customer_id": customerID}).
 		One(&transaction)
 
 	return transaction, err
 }
 
-func (t *Transactions) GetAll(customerID int) (transactions models.Transactions, err error) {
-	err = db.Select().
+func (t *Transactions) GetAll() (transactions models.Transactions, err error) {
+	customerID := t.cs.CustomerID
+	err = DB.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		All(&transactions)
 
 	return transactions, err
 }
 
-func (t *Transactions) GetAllByDateRange(customerID int, startDate, endDate time.Time) (transactions models.Transactions, err error) {
-	err = db.Select().
+func (t *Transactions) GetAllByDateRange(startDate, endDate time.Time) (transactions models.Transactions, err error) {
+	customerID := t.cs.CustomerID
+	err = DB.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		AndWhere(dbx.Between("datetime", startDate, endDate)).
 		All(&transactions)

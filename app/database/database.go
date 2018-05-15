@@ -41,3 +41,7 @@ func (d Database) Close() error {
 func (d Database) GetInstance() *dbx.DB {
 	return db
 }
+
+func Get() *dbx.DB {
+	return db
+}

@@ -5,8 +5,8 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/controllers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/database"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/router"
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services"
 
 	"github.com/namsral/flag"
 )
@@ -29,13 +29,12 @@ func main() {
 	}
 	defer db.Close()
 
-	_, err = repositories.New(db)
+	err = services.New(db)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	c := controllers.NewControllers(db)
-
+	c := controllers.NewControllers()
 	r := router.NewRouter(c)
 	err = r.Run()
 	if err != nil {

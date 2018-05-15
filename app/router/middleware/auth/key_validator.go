@@ -1,63 +1,65 @@
 package auth
 
 import (
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
+	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
+	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 
 	"github.com/labstack/echo"
 )
 
-func DefaultValidator(key string, c echo.Context) (bool, error) {
-	var err error
-	var customerUniqueID string
+func DefaultValidator(key string, c echo.Context) (isValid bool, err error) {
+	sa := API.New()
 
-	api := new(repositories.API)
-	customerKey, err := api.GetAPICustomerKey(key)
-	if err != nil {
-		return false, err
+	entry, err := sa.GetCustomerKey(key)
+	if key != entry.Key {
+		err = API.ErrInvalidAPIKey
+		return
 	}
 
-	customerUniqueID = c.QueryParam("cust_unique_id")
+	customerUniqueID := c.QueryParam("cust_unique_id")
 
-	customers := new(repositories.Customers)
-	_, err = customers.GetByCustomerUniqueID(customerUniqueID)
+	sc, err := Customer.New(entry.CustomerID)
 	if err != nil {
-		return false, err
+		return
 	}
-	//verify
 
-	c.Set("customerID", customerKey.CustomerID)
+	customer, err := sc.Info().Get()
+	if err != nil {
+		return
+	}
+	if customer.CustomerUniqueID != customerUniqueID {
+		err = Customer.ErrInvalidUniqueCustomerID
+		return
+	}
 
-	return true, nil
+	isValid = true
+	c.Set("customerID", entry.CustomerID)
+
+	return
 }
 
-func RegistrationValidator(key string, c echo.Context) (bool, error) {
-	var err error
+func RegistrationValidator(key string, c echo.Context) (isValid bool, err error) {
+	sa := API.New()
 
-	api := new(repositories.API)
-	registrationKey, err := api.GetAPIRegistrationKey()
-	if err != nil {
-		return false, err
+	entry, err := sa.GetRegistrationKey()
+	if key != entry.Key {
+		err = API.ErrInvalidAPIKey
+		return
 	}
 
-	if key != registrationKey.Key {
-		return false, nil
-	}
-
-	return true, nil
+	isValid = true
+	return
 }
 
-func LoginValidator(key string, c echo.Context) (bool, error) {
-	var err error
+func LoginValidator(key string, c echo.Context) (isValid bool, err error) {
+	sa := API.New()
 
-	api := new(repositories.API)
-	loginKey, err := api.GetAPILoginKey()
-	if err != nil {
-		return false, err
+	entry, err := sa.GetLoginKey()
+	if key != entry.Key {
+		err = API.ErrInvalidAPIKey
+		return
 	}
 
-	if key != loginKey.Key {
-		return false, nil
-	}
-
-	return true, nil
+	isValid = true
+	return
 }

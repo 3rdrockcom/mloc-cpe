@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/repositories"
+	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
 
 	"github.com/labstack/echo"
 )
@@ -21,14 +21,14 @@ func (co Controllers) GetCustomerKey(c echo.Context) error {
 
 	programCustomerMobile := c.QueryParam("mobile")
 
-	api := new(repositories.API)
-	customerKey, err := api.GetCustomerKey(programID, programCustomerID, programCustomerMobile)
+	api := API.New()
+	customerAccessKey, err := api.GetCustomerAccessKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
 		return nil
 	}
 
-	c.JSON(http.StatusOK, customerKey)
+	c.JSON(http.StatusOK, customerAccessKey)
 	return nil
 
 }
