@@ -1,10 +1,14 @@
 package auth
 
-import "github.com/labstack/echo"
+import (
+	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
+	"github.com/labstack/echo"
+)
 
-func BasicValidator(username, password string, c echo.Context) (bool, error) {
-	if username == "joe" && password == "secret" {
-		return true, nil
-	}
-	return false, nil
+func BasicValidator(username, password string, c echo.Context) (isValid bool, err error) {
+	sa := API.New()
+
+	isValid, err = sa.DoAuth(username, password)
+
+	return
 }
