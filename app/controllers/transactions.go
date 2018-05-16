@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 
@@ -16,14 +15,11 @@ type payloadTransactions struct {
 }
 
 func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
-	var err error
-
 	customerID := c.Get("customerID").(int)
 
 	payload := payloadTransactions{}
-	if err = c.Bind(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
+	if err := c.Bind(&payload); err != nil {
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	transactions := payload.Transactions
@@ -32,9 +28,8 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 		transactions[i].DateTime = transactions[i].Date.Time
 	}
 
-	if err = validation.Validate(transactions); err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
+	if err := validation.Validate(transactions); err != nil {
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	sc, err := Customer.New(customerID)
@@ -43,10 +38,8 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	}
 
 	if err = sc.Transactions().Create(transactions); err != nil {
-		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
-		return nil
+		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	c.JSON(http.StatusOK, transactions)
-	return nil
+	return SendResponse(c, http.StatusOK, transactions)
 }

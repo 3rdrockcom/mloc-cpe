@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
 
 	"github.com/labstack/echo"
@@ -15,8 +14,7 @@ func (co Controllers) GetCustomerKey(c echo.Context) error {
 
 	programCustomerID, err := strconv.Atoi(c.QueryParam("customer_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	programCustomerMobile := c.QueryParam("mobile")
@@ -24,11 +22,9 @@ func (co Controllers) GetCustomerKey(c echo.Context) error {
 	api := API.New()
 	customerAccessKey, err := api.GetCustomerAccessKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, helpers.H{"errors": err.Error()})
-		return nil
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	c.JSON(http.StatusOK, customerAccessKey)
-	return nil
+	return SendResponse(c, http.StatusOK, customerAccessKey)
 
 }

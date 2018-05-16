@@ -22,6 +22,7 @@ func NewRouter(c *controllers.Controllers) *Router {
 
 	r.appendMiddleware()
 	r.appendRoutes()
+	r.appendErrorHandler()
 
 	return r
 }
