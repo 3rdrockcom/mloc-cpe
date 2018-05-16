@@ -1,8 +1,6 @@
 package router
 
 func (r *Router) appendRoutes() {
-	r.e.GET("/ping", r.c.Ping)
-
 	api := r.e.Group("/api")
 	api.Use(r.mwBasicAuth())
 
