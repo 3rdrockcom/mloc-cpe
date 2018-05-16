@@ -5,6 +5,7 @@ import (
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo"
@@ -36,13 +37,15 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 		return nil
 	}
 
-	/*
-		rt := new(repositories.Transactions)
-		if err = rt.Create(customerID, transactions); err != nil {
-			c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
-			return nil
-		}
-	*/
+	sc, err := Customer.New(customerID)
+	if err != nil {
+		return err
+	}
+
+	if err = sc.Transactions().Create(transactions); err != nil {
+		c.JSON(http.StatusInternalServerError, helpers.H{"errors": err.Error()})
+		return nil
+	}
 
 	c.JSON(http.StatusOK, transactions)
 	return nil
