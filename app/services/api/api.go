@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
@@ -33,6 +35,9 @@ func (as *APIService) GetLoginKey() (entry *models.APIKey, err error) {
 		Where(dbx.HashExp{"key": "LOGIN"}).
 		One(entry)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrInvalidAPIKey
+		}
 		return nil, err
 	}
 
@@ -47,6 +52,9 @@ func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 		AndWhere(dbx.NewExp("`key`!={:key}", dbx.Params{"key": "LOGIN"})).
 		One(entry)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrInvalidAPIKey
+		}
 		return nil, err
 	}
 
@@ -56,6 +64,9 @@ func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 func (as *APIService) GetCustomerKey(key string) (entry *models.APIKey, err error) {
 	entry, err = as.GetKey(key)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrInvalidAPIKey
+		}
 		return nil, err
 	}
 

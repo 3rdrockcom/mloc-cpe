@@ -11,6 +11,10 @@ func DefaultValidator(key string, c echo.Context) (isValid bool, err error) {
 	sa := API.New()
 
 	entry, err := sa.GetCustomerKey(key)
+	if err != nil {
+		return
+	}
+
 	if key != entry.Key {
 		err = API.ErrInvalidAPIKey
 		return
@@ -27,6 +31,7 @@ func DefaultValidator(key string, c echo.Context) (isValid bool, err error) {
 	if err != nil {
 		return
 	}
+
 	if customer.CustomerUniqueID != customerUniqueID {
 		err = Customer.ErrInvalidUniqueCustomerID
 		return
@@ -42,6 +47,10 @@ func RegistrationValidator(key string, c echo.Context) (isValid bool, err error)
 	sa := API.New()
 
 	entry, err := sa.GetRegistrationKey()
+	if err != nil {
+		return
+	}
+
 	if key != entry.Key {
 		err = API.ErrInvalidAPIKey
 		return
@@ -55,6 +64,10 @@ func LoginValidator(key string, c echo.Context) (isValid bool, err error) {
 	sa := API.New()
 
 	entry, err := sa.GetLoginKey()
+	if err != nil {
+		return
+	}
+
 	if key != entry.Key {
 		err = API.ErrInvalidAPIKey
 		return
