@@ -10,7 +10,7 @@ CREATE TABLE `transactions` (
   `balance` decimal(10,2) NOT NULL,
   `datetime` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `customer_id` (`customer_id`)
+  KEY `customer_id` (`customer_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- +goose Down
