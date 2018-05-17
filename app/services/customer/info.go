@@ -23,6 +23,33 @@ func (i *Info) Get() (customer *models.Customer, err error) {
 	return
 }
 
+type CustomerDetails struct {
+	ID                    int    `json:"id"`
+	FirstName             string `json:"first_name"`
+	LastName              string `json:"last_name"`
+	Email                 string `json:"email"`
+	ProgramID             int    `json:"program_id"`
+	ProgramCustomerID     int    `json:"program_customer_id"`
+	ProgramCustomerMobile string `json:"program_customer_mobile"`
+	CustomerUniqueID      string `json:"cust_unique_id" db:"cust_unique_id"`
+	Key                   string `json:"key" db:"key"`
+}
+
+func (i *Info) GetDetails() (customerDetails *CustomerDetails, err error) {
+	customerDetails = new(CustomerDetails)
+
+	err = DB.Select("customers.*", "api_keys.key").
+		From("customers").
+		LeftJoin("api_keys", dbx.NewExp("api_keys.customer_id = customers.id")).
+		Where(dbx.HashExp{"customers.id": i.cs.CustomerID}).
+		One(customerDetails)
+	if err != nil {
+		return nil, err
+	}
+
+	return
+}
+
 func (i *Info) Update(customer *models.Customer) (err error) {
 	tx, err := DB.Begin()
 	if err != nil {

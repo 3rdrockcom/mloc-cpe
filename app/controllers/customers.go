@@ -13,6 +13,22 @@ import (
 	"github.com/labstack/echo"
 )
 
+func (co Controllers) GetCustomer(c echo.Context) error {
+	customerID := c.Get("customerID").(int)
+
+	sc, err := Customer.New(customerID)
+	if err != nil {
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	customer, err := sc.Info().GetDetails()
+	if err != nil {
+		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+	}
+
+	return SendResponse(c, http.StatusOK, customer)
+}
+
 func (co Controllers) PostAddCustomer(c echo.Context) error {
 	customerID := c.Get("customerID").(int)
 
