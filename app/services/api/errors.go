@@ -4,5 +4,5 @@ import "errors"
 
 var (
 	ErrInvalidAPIKey  = errors.New("Invalid API Key")
-	ErrCustomerExists = errors.New("Customer already exists")
+	ErrCustomerExists = errors.New("Customer already has an existing id and key")
 )
