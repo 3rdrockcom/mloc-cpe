@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"strconv"
+	"time"
 
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 
@@ -101,8 +102,9 @@ func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	}
 
 	entry := &models.APIKey{
-		CustomerID: customer.ID,
-		Key:        k.generateAPIKey(),
+		CustomerID:  customer.ID,
+		Key:         k.generateAPIKey(),
+		DateCreated: time.Now().UTC(),
 	}
 	err = tx.Model(entry).Insert()
 	if err != nil {
