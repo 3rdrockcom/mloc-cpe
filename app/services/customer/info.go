@@ -1,6 +1,8 @@
 package customer
 
 import (
+	"database/sql"
+
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
@@ -17,6 +19,9 @@ func (i *Info) Get() (customer *models.Customer, err error) {
 		Where(dbx.HashExp{"id": i.cs.CustomerID}).
 		One(customer)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrCustomerNotFound
+		}
 		return nil, err
 	}
 
@@ -44,6 +49,9 @@ func (i *Info) GetDetails() (customerDetails *CustomerDetails, err error) {
 		Where(dbx.HashExp{"customers.id": i.cs.CustomerID}).
 		One(customerDetails)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			err = ErrCustomerNotFound
+		}
 		return nil, err
 	}
 

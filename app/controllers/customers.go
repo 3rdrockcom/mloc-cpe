@@ -54,7 +54,7 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return SendResponse(c, http.StatusOK, customer)
+	return SendOKResponse(c, Customer.MsgInfoUpdated)
 }
 
 type payloadTransactions struct {
@@ -88,7 +88,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
 	}
 
-	return SendResponse(c, http.StatusOK, transactions)
+	return SendOKResponse(c, Customer.MsgTransactionsInserted)
 }
 
 func (co Controllers) GetCustomerProfile(c echo.Context) error {
