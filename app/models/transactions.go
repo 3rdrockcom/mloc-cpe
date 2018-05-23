@@ -8,12 +8,15 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+// Transactions is an array of Transaction entries
 type Transactions []Transaction
 
+// Sort a list transactions ascending order
 func (t Transactions) Len() int           { return len(t) }
 func (t Transactions) Less(i, j int) bool { return t[i].Date.Time.Before(t[j].Date.Time) }
 func (t Transactions) Swap(i, j int)      { t[i], t[j] = t[j], t[i] }
 
+// Separator splits a list of transactions into p partitions
 func (t Transactions) Separator(p float64) []Transactions {
 	MaxTransaction := 0.0
 
@@ -39,6 +42,7 @@ func (t Transactions) Separator(p float64) []Transactions {
 	return res
 }
 
+// Transaction contains information about a transaction
 type Transaction struct {
 	ID             int          `json:"id"`
 	CustomerID     int          `json:"customer_id" binding:"required"`
@@ -51,10 +55,12 @@ type Transaction struct {
 	DateTime       time.Time    `json:"-" db:"datetime"`
 }
 
+// TableName gets the name of the database table
 func (t Transaction) TableName() string {
 	return "transactions"
 }
 
+// Validate checks if the values in the struct are valid
 func (t Transaction) Validate() error {
 	return validation.ValidateStruct(&t,
 		validation.Field(&t.CustomerID, validation.Required),

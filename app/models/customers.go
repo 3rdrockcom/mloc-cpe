@@ -5,8 +5,10 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
+// Customers is an array of Customer entries
 type Customers []Customer
 
+// Customer contains information about a customer
 type Customer struct {
 	ID                    int    `json:"id"`
 	FirstName             string `json:"first_name" binding:"required"`
@@ -19,10 +21,12 @@ type Customer struct {
 	LastTransactionID     int    `json:"-"`
 }
 
+// TableName gets the name of the database table
 func (c Customer) TableName() string {
 	return "customers"
 }
 
+// Validate checks if the values in the struct are valid
 func (c Customer) Validate() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.FirstName, validation.Required),

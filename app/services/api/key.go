@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/gommon/random"
 )
 
+// Key manages the customer API
 type Key struct {
 	programID             int
 	programCustomerID     int
@@ -21,6 +22,7 @@ type Key struct {
 	ApiKey                string `json:"api_key"`
 }
 
+// Validate checks if the values in the struct are valid
 func (k Key) Validate() error {
 	return validation.ValidateStruct(&k,
 		validation.Field(&k.programID, validation.Required),
@@ -29,6 +31,7 @@ func (k Key) Validate() error {
 	)
 }
 
+// NewKey creates an instance of the customer key service
 func NewKey(programID int, programCustomerID int, programCustomerMobile string) (k *Key, err error) {
 	k = &Key{
 		programID:             programID,
@@ -40,6 +43,7 @@ func NewKey(programID int, programCustomerID int, programCustomerMobile string) 
 	return
 }
 
+// GetCustomerKey gets a customer and associated customer API key
 func (k *Key) GetCustomerKey() (customerKey Key, err error) {
 	customerUniqueID := k.generateCustomerUniqueID()
 
@@ -69,6 +73,7 @@ func (k *Key) GetCustomerKey() (customerKey Key, err error) {
 	return
 }
 
+// GenerateCustomerKey generates a customer and associated customer API key
 func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	customerUniqueID := k.generateCustomerUniqueID()
 
@@ -124,6 +129,7 @@ func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	return
 }
 
+// generateCustomerUniqueID generates an MD5 hash from customer program information
 func (k *Key) generateCustomerUniqueID() string {
 	str := strconv.Itoa(k.programID) + "_" + strconv.Itoa(k.programCustomerID) + "_" + k.programCustomerMobile
 
@@ -132,6 +138,7 @@ func (k *Key) generateCustomerUniqueID() string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
+// generateAPIKey generates a random string of 32 characters
 func (k *Key) generateAPIKey() string {
 	return random.String(32)
 }

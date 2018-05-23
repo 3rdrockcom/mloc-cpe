@@ -5,23 +5,25 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+// DB is the database handler
 var DB *dbx.DB
 
+// CustomerService is a service that manages a customer
 type CustomerService struct {
 	CustomerID   int
 	info         *Info
 	transactions *Transactions
 }
 
+// Validate checks if the values in the struct are valid
 func (cs CustomerService) Validate() error {
 	return validation.ValidateStruct(&cs,
 		validation.Field(&cs.CustomerID, validation.Required),
 	)
 }
 
+// New creates an instance of the customer service
 func New(customerID int) (cs *CustomerService, err error) {
-	// validate
-
 	cs = new(CustomerService)
 	cs.CustomerID = customerID
 	err = cs.Validate()
@@ -39,10 +41,12 @@ func New(customerID int) (cs *CustomerService, err error) {
 	return
 }
 
+// Info gets customer info methods
 func (cs *CustomerService) Info() *Info {
 	return cs.info
 }
 
+// Transactions gets customer transaction methods
 func (cs *CustomerService) Transactions() *Transactions {
 	return cs.transactions
 }

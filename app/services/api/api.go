@@ -8,14 +8,18 @@ import (
 	dbx "github.com/go-ozzo/ozzo-dbx"
 )
 
+// DB is the database handler
 var DB *dbx.DB
 
+// APIService is a service that manages the API access
 type APIService struct{}
 
+// New creates an instance of the service
 func New() *APIService {
 	return &APIService{}
 }
 
+// DoAuth checks if a user's auth credentials are valid
 func (as *APIService) DoAuth(username, password string) (isValid bool, err error) {
 	authorizedUsers := make(map[string]string)
 
@@ -28,6 +32,7 @@ func (as *APIService) DoAuth(username, password string) (isValid bool, err error
 	return
 }
 
+// GetLoginKey gets the login API key
 func (as *APIService) GetLoginKey() (entry *models.APIKey, err error) {
 	entry = new(models.APIKey)
 
@@ -44,6 +49,7 @@ func (as *APIService) GetLoginKey() (entry *models.APIKey, err error) {
 	return
 }
 
+// GetRegistrationKey gets the registration API key
 func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 	entry = new(models.APIKey)
 
@@ -61,6 +67,7 @@ func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 	return
 }
 
+// GetCustomerKey gets the customer API key
 func (as *APIService) GetCustomerKey(key string) (entry *models.APIKey, err error) {
 	entry, err = as.GetKey(key)
 	if err != nil {
@@ -73,6 +80,7 @@ func (as *APIService) GetCustomerKey(key string) (entry *models.APIKey, err erro
 	return
 }
 
+// GetKey gets an API key
 func (as *APIService) GetKey(key string) (entry *models.APIKey, err error) {
 	entry = new(models.APIKey)
 
@@ -83,6 +91,7 @@ func (as *APIService) GetKey(key string) (entry *models.APIKey, err error) {
 	return
 }
 
+// GetKeyByCustomerID gets an API key by customer ID
 func (as *APIService) GetKeyByCustomerID(customerID int) (entry *models.APIKey, err error) {
 	entry = new(models.APIKey)
 
@@ -93,6 +102,7 @@ func (as *APIService) GetKeyByCustomerID(customerID int) (entry *models.APIKey, 
 	return
 }
 
+// GetCustomerByCustomerUniqueID gets an API key by customer unique ID
 func (as *APIService) GetCustomerByCustomerUniqueID(customerUniqueID string) (customer *models.Customer, err error) {
 	customer = new(models.Customer)
 
@@ -106,12 +116,15 @@ func (as *APIService) GetCustomerByCustomerUniqueID(customerUniqueID string) (cu
 	return
 }
 
+// GetCustomerAccessKey gets a customer unique ID and associated customer API key
 func (as *APIService) GetCustomerAccessKey(programID int, programCustomerID int, programCustomerMobile string) (k Key, err error) {
+	// Initialize key service
 	customerKey, err := NewKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
 		return
 	}
 
+	// Get customer access key and customer unique ID
 	k, err = customerKey.GetCustomerKey()
 	if err != nil {
 		return
@@ -120,12 +133,15 @@ func (as *APIService) GetCustomerAccessKey(programID int, programCustomerID int,
 	return
 }
 
+// GenerateCustomerAccessKey generates a customer unique ID and associated customer API key
 func (as *APIService) GenerateCustomerAccessKey(programID int, programCustomerID int, programCustomerMobile string) (k Key, err error) {
+	// Initialize key service
 	customerKey, err := NewKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
 		return
 	}
 
+	// Get customer access key and customer unique ID
 	k, err = customerKey.GenerateCustomerKey()
 	if err != nil {
 		return

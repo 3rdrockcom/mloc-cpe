@@ -22,6 +22,7 @@ func init() {
 func main() {
 	var err error
 
+	// Create new connection handler for database
 	db := database.NewDatabase("mysql", dsn)
 	err = db.Open()
 	if err != nil {
@@ -29,11 +30,13 @@ func main() {
 	}
 	defer db.Close()
 
+	// Setup services
 	err = services.New(db)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// Setup router and run
 	c := controllers.NewControllers()
 	r := router.NewRouter(c)
 	err = r.Run()
