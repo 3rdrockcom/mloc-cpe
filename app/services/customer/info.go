@@ -36,6 +36,7 @@ type CustomerDetails struct {
 	FirstName             string `json:"first_name"`
 	LastName              string `json:"last_name"`
 	Email                 string `json:"email"`
+	MobileNumber          string `json:"mobile_number"`
 	ProgramID             int    `json:"program_id"`
 	ProgramCustomerID     int    `json:"program_customer_id"`
 	ProgramCustomerMobile string `json:"program_customer_mobile"`

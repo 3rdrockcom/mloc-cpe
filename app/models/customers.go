@@ -14,6 +14,7 @@ type Customer struct {
 	FirstName             string `json:"first_name" binding:"required"`
 	LastName              string `json:"last_name" binding:"required"`
 	Email                 string `json:"email" binding:"required"`
+	MobileNumber          string `json:"mobile_number" binding:"required"`
 	ProgramID             int    `json:"-"`
 	ProgramCustomerID     int    `json:"-"`
 	ProgramCustomerMobile string `json:"-"`
@@ -32,5 +33,6 @@ func (c Customer) Validate() error {
 		validation.Field(&c.FirstName, validation.Required),
 		validation.Field(&c.LastName, validation.Required),
 		validation.Field(&c.Email, validation.Required, is.Email),
+		validation.Field(&c.MobileNumber, validation.Required),
 	)
 }
