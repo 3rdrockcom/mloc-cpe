@@ -2,12 +2,12 @@ package auth
 
 import (
 	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
-	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 
 	"github.com/labstack/echo"
 )
 
-func DefaultValidator(key string, c echo.Context) (isValid bool, err error) {
+// CustomerValidator is a validator used for customer key auth middleware
+func CustomerValidator(key string, c echo.Context) (isValid bool, err error) {
 	// Initialize API service
 	sa := API.New()
 
@@ -23,35 +23,15 @@ func DefaultValidator(key string, c echo.Context) (isValid bool, err error) {
 		return
 	}
 
-	// Get customer unique ID
-	customerUniqueID := c.QueryParam("cust_unique_id")
-
-	// Initialize customer service
-	sc, err := Customer.New(entry.CustomerID)
-	if err != nil {
-		return
-	}
-
-	// Get customer information
-	customer, err := sc.Info().Get()
-	if err != nil {
-		return
-	}
-
-	// Check if customer unique ID is a match
-	if customer.CustomerUniqueID != customerUniqueID {
-		err = Customer.ErrInvalidUniqueCustomerID
-		return
-	}
-
-	// User is authorized
+	// User key is valid
 	isValid = true
 
 	// Pass user information to context
-	c.Set("customerID", entry.CustomerID)
+	c.Set("_customerID", entry.CustomerID)
 	return
 }
 
+// RegistrationValidator is a validator used for registration key auth middleware
 func RegistrationValidator(key string, c echo.Context) (isValid bool, err error) {
 	// Initialize API service
 	sa := API.New()
@@ -73,7 +53,7 @@ func RegistrationValidator(key string, c echo.Context) (isValid bool, err error)
 	return
 }
 
-// LoginValidator is a validator used for key auth middleware
+// LoginValidator is a validator used for login key auth middleware
 func LoginValidator(key string, c echo.Context) (isValid bool, err error) {
 	// Initialize API service
 	sa := API.New()

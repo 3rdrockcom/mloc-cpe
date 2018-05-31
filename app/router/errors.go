@@ -22,12 +22,29 @@ func (r *Router) appendErrorHandler() {
 
 		// Override status code based on error responses
 		switch message {
+		// API Service
 		case API.ErrInvalidAPIKey.Error():
 			code = http.StatusForbidden
+
+		// Customer Service
 		case Customer.ErrInvalidUniqueCustomerID.Error():
 			code = http.StatusForbidden
 		case Customer.ErrCustomerNotFound.Error():
 			code = http.StatusNotFound
+
+		// Auth Middleware
+		case "missing key in request header":
+			message = API.ErrMissingAPIKey.Error()
+		case "missing key in the query string":
+			message = Customer.ErrMissingUniqueCustomerID.Error()
+		case "missing key in the form":
+			message = Customer.ErrMissingUniqueCustomerID.Error()
+
+		// Unknown error
+		default:
+			if _, ok := err.(*echo.HTTPError); !ok {
+				message = "Internal Error"
+			}
 		}
 
 		// Send error in a specific format
