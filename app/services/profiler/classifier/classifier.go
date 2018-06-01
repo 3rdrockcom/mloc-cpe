@@ -12,6 +12,7 @@ import (
 
 	"github.com/jinzhu/now"
 	"github.com/montanaflynn/stats"
+	"github.com/shopspring/decimal"
 )
 
 var Debug bool
@@ -160,7 +161,7 @@ func (c *Classifier) processWeekly() Credits {
 }
 
 func (c *Classifier) calcRankValue(list Credits) float64 {
-	data := []float64{}
+	data := []decimal.Decimal{}
 
 	var keys []int
 	for k := range list {
@@ -173,14 +174,14 @@ func (c *Classifier) calcRankValue(list Credits) float64 {
 	}
 
 	rankValue := 0.0
-	total := 0.0
+	total := decimal.Zero
 	for k := range keys {
 		i := keys[k]
 
-		sum := 0.0
+		sum := decimal.Zero
 		for j := range list[i] {
-			total += list[i][j].Amount
-			sum += list[i][j].Amount
+			total = total.Add(list[i][j].Amount)
+			sum = sum.Add(list[i][j].Amount)
 		}
 
 		data = append(data, sum)
@@ -218,8 +219,14 @@ func (c *Classifier) getDateRange() (time.Time, time.Time) {
 	return dateMin, dateMax
 }
 
-func (c *Classifier) getStatistics(data []float64) (float64, float64, error) {
+func (c *Classifier) getStatistics(input []decimal.Decimal) (float64, float64, error) {
 	var err error
+
+	data := []float64{}
+	for i := range input {
+		f, _ := input[i].Float64()
+		data = append(data, f)
+	}
 
 	mean, err := stats.Mean(data)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
@@ -11,6 +12,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/jinzhu/now"
 	"github.com/labstack/echo"
+	"github.com/shopspring/decimal"
 )
 
 // GetCustomer gets customer information
@@ -70,9 +72,18 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 	return SendOKResponse(c, Customer.MsgInfoUpdated)
 }
 
-// payloadTransactions is a wrapper for transaction data
-type payloadTransactions struct {
-	Transactions []models.Transaction `json:"transactions" binding:"required"`
+// CustomerTransactionsRequest is a wrapper for transaction data
+type CustomerTransactionsRequest struct {
+	Transactions []CustomerTransactionRequest `json:"transactions" binding:"required"`
+}
+
+// CustomerTransactionRequest contains information about a transaction
+type CustomerTransactionRequest struct {
+	Description string          `json:"description" binding:"required"`
+	Credit      decimal.Decimal `json:"credit" binding:"required"`
+	Debit       decimal.Decimal `json:"debit" binding:"required"`
+	Balance     decimal.Decimal `json:"balance"`
+	DateTime    helpers.Time    `json:"date" binding:"required"`
 }
 
 // PostAddCustomerTransactions appends transactions to transaction list
@@ -81,16 +92,22 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	customerID := c.Get("customerID").(int)
 
 	// Bind data to struct
-	payload := payloadTransactions{}
-	if err := c.Bind(&payload); err != nil {
+	ctr := CustomerTransactionsRequest{}
+	if err := c.Bind(&ctr); err != nil {
 		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
-	// Fix missing struct values
-	transactions := payload.Transactions
-	for i := range transactions {
-		transactions[i].CustomerID = customerID
-		transactions[i].DateTime = transactions[i].Date.Time
+	// Assign values to struct
+	transactions := models.Transactions{}
+	for i := range ctr.Transactions {
+		transactions = append(transactions, models.Transaction{
+			CustomerID:  customerID,
+			Description: ctr.Transactions[i].Description,
+			Credit:      ctr.Transactions[i].Credit,
+			Debit:       ctr.Transactions[i].Debit,
+			Balance:     ctr.Transactions[i].Balance,
+			DateTime:    ctr.Transactions[i].DateTime.Time,
+		})
 	}
 
 	// Validate struct

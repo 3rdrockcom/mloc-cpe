@@ -3,7 +3,7 @@ package classifier
 import (
 	"sort"
 
-	"github.com/montanaflynn/stats"
+	"github.com/shopspring/decimal"
 )
 
 type Results []Result
@@ -11,7 +11,7 @@ type Results []Result
 type Result struct {
 	Name        string
 	Score       float64
-	Probability float64
+	Probability decimal.Decimal
 	List        Credits
 }
 
@@ -20,7 +20,7 @@ func (r Results) GetClassification(e int) Result {
 	return classification
 }
 
-func (r Results) GetProbability(e int) float64 {
+func (r Results) GetProbability(e int) decimal.Decimal {
 	data := make([]float64, len(r))
 
 	minScore := 0.0
@@ -44,11 +44,11 @@ func (r Results) GetProbability(e int) float64 {
 		data[i] = (data[i] / sum)
 	}
 
-	return data[e]
+	return decimal.NewFromFloat(data[e]).Round(3)
 }
 
-func (r Results) GetAveragePerInterval(e int) float64 {
-	data := []float64{}
+func (r Results) GetAveragePerInterval(e int) decimal.Decimal {
+	data := []decimal.Decimal{}
 
 	classification := r[e]
 	list := classification.List
@@ -61,21 +61,21 @@ func (r Results) GetAveragePerInterval(e int) float64 {
 
 	for k := range keys {
 		i := keys[k]
-		sum := 0.0
+		sum := decimal.Zero
 
 		for j := range list[i] {
-			sum += list[i][j].Amount
+			sum = sum.Add(list[i][j].Amount)
 		}
 
 		data = append(data, sum)
 	}
 
-	mean, _ := stats.Mean(data)
+	mean, _ := calcAvg(data)
 	return mean
 }
 
-func (r Results) GetAverage(e int) float64 {
-	data := []float64{}
+func (r Results) GetAverage(e int) decimal.Decimal {
+	data := []decimal.Decimal{}
 
 	classification := r[e]
 	list := classification.List
@@ -86,6 +86,6 @@ func (r Results) GetAverage(e int) float64 {
 		}
 	}
 
-	mean, _ := stats.Mean(data)
+	mean, _ := calcAvg(data)
 	return mean
 }

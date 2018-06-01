@@ -6,6 +6,8 @@ import (
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler/classifier"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler/probability"
+
+	"github.com/shopspring/decimal"
 )
 
 var Debug bool
@@ -34,7 +36,7 @@ func (p *Profiler) Run() Results {
 	for a := 0; a < len(tSplit); a++ {
 		transactions := models.Transactions{}
 		for _, transaction := range tSplit[a] {
-			if transaction.Credit > 0 {
+			if transaction.Credit.GreaterThan(decimal.Zero) {
 				transactions = append(transactions, transaction)
 			}
 		}
@@ -56,7 +58,7 @@ func (p *Profiler) Run() Results {
 			entry := Result{}
 
 			entry.Classification = clr[i].Name
-			entry.Match = clr.GetProbability(i) * 100
+			entry.Match = clr.GetProbability(i).Mul(decimal.New(100, 0))
 
 			entry.Credits = Credits{
 				AveragePerInterval: clr.GetAveragePerInterval(i),
@@ -72,12 +74,12 @@ func (p *Profiler) Run() Results {
 			sort.Sort(probDay)
 			pd := make([]Day, 0)
 			for g := range probDay {
-				if probDay[g].Probability == 0 {
+				if probDay[g].Probability.Equal(decimal.Zero) {
 					break
 				}
 				pd = append(pd, Day{
 					Day:         probDay[g].Day,
-					Probability: probDay[g].Probability * 100,
+					Probability: probDay[g].Probability.Mul(decimal.New(100, 0)),
 				})
 			}
 			entry.Statistics.Day = pd
@@ -87,12 +89,12 @@ func (p *Profiler) Run() Results {
 				sort.Sort(probWeekday)
 				pw := make([]Weekday, 0)
 				for g := range probWeekday {
-					if probWeekday[g].Probability == 0 {
+					if probWeekday[g].Probability.Equal(decimal.Zero) {
 						break
 					}
 					pw = append(pw, Weekday{
 						Weekday:     probWeekday[g].Weekday.String(),
-						Probability: probWeekday[g].Probability * 100,
+						Probability: probWeekday[g].Probability.Mul(decimal.New(100, 0)),
 					})
 				}
 				entry.Statistics.Weekday = pw

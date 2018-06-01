@@ -1,17 +1,21 @@
 package profiler
 
+import (
+	"github.com/shopspring/decimal"
+)
+
 type Results [][]Result
 
 type Result struct {
-	Classification string     `json:"classification"`
-	Match          float64    `json:"match"`
-	Credits        Credits    `json:"credits"`
-	Statistics     Statistics `json:"statistics"`
+	Classification string          `json:"classification"`
+	Match          decimal.Decimal `json:"match"`
+	Credits        Credits         `json:"credits"`
+	Statistics     Statistics      `json:"statistics"`
 }
 
 type Credits struct {
-	AveragePerInterval float64 `json:"average_per_interval"`
-	Average            float64 `json:"average"`
+	AveragePerInterval decimal.Decimal `json:"average_per_interval"`
+	Average            decimal.Decimal `json:"average"`
 }
 
 type Statistics struct {
@@ -20,11 +24,11 @@ type Statistics struct {
 }
 
 type Day struct {
-	Day         int     `json:"day"`
-	Probability float64 `json:"probability"`
+	Day         int             `json:"day"`
+	Probability decimal.Decimal `json:"probability"`
 }
 
 type Weekday struct {
-	Weekday     string  `json:"weekday"`
-	Probability float64 `json:"probability"`
+	Weekday     string          `json:"weekday"`
+	Probability decimal.Decimal `json:"probability"`
 }

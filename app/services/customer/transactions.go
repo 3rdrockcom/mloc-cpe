@@ -7,6 +7,7 @@ import (
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
+	"github.com/shopspring/decimal"
 )
 
 // Transactions manages customer transaction information
@@ -32,7 +33,7 @@ func (t *Transactions) Create(transactions models.Transactions) (err error) {
 	}
 
 	// Get current running balance
-	runningBalance := 0.0
+	runningBalance := decimal.Zero
 	lastTransaction := models.Transaction{}
 	if customer.LastTransactionID != 0 {
 		lastTransaction, err = t.Get(customer.LastTransactionID)
@@ -57,7 +58,7 @@ func (t *Transactions) Create(transactions models.Transactions) (err error) {
 		}
 
 		// Calculate running balance
-		runningBalance = runningBalance + transaction.Credit - transaction.Debit
+		runningBalance = runningBalance.Add(transaction.Credit.Sub(transaction.Debit))
 		transaction.RunningBalance = runningBalance
 
 		// Insert into database

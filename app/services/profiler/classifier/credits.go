@@ -1,10 +1,14 @@
 package classifier
 
-import "time"
+import (
+	"time"
+
+	"github.com/shopspring/decimal"
+)
 
 type Credits map[int][]Credit
 
 type Credit struct {
 	Date   time.Time
-	Amount float64
+	Amount decimal.Decimal
 }
