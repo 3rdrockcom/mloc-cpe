@@ -11,10 +11,10 @@ type Customers []Customer
 // Customer contains information about a customer
 type Customer struct {
 	ID                    int    `json:"id"`
-	FirstName             string `json:"first_name" binding:"required"`
-	LastName              string `json:"last_name" binding:"required"`
-	Email                 string `json:"email" binding:"required"`
-	MobileNumber          string `json:"mobile_number" binding:"required"`
+	FirstName             string `json:"first_name" form:"first_name" binding:"required"`
+	LastName              string `json:"last_name" form:"last_name" binding:"required"`
+	Email                 string `json:"email" form:"email" binding:"required"`
+	MobileNumber          string `json:"mobile_number" form:"mobile_number" binding:"required"`
 	ProgramID             int    `json:"-"`
 	ProgramCustomerID     int    `json:"-"`
 	ProgramCustomerMobile string `json:"-"`
