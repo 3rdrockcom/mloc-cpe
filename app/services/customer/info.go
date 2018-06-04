@@ -64,14 +64,14 @@ func (i *Info) GetDetails() (customerDetails *CustomerDetails, err error) {
 }
 
 // Update updates customer information
-func (i *Info) Update(customer *models.Customer) (err error) {
+func (i *Info) Update(customer *models.Customer, fields ...string) (err error) {
 	tx, err := DB.Begin()
 	if err != nil {
 		return err
 	}
 
 	customer.ID = i.cs.CustomerID
-	err = tx.Model(customer).Update()
+	err = tx.Model(customer).Update(fields...)
 	if err != nil {
 		tx.Rollback()
 		return err
