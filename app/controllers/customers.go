@@ -111,11 +111,11 @@ type CustomerTransactionsRequest struct {
 
 // CustomerTransactionRequest contains information about a transaction
 type CustomerTransactionRequest struct {
-	Description string          `json:"description" binding:"required"`
-	Credit      decimal.Decimal `json:"credit" binding:"required"`
-	Debit       decimal.Decimal `json:"debit" binding:"required"`
-	Balance     decimal.Decimal `json:"balance"`
-	DateTime    helpers.Time    `json:"date" binding:"required"`
+	Description string            `json:"description" binding:"required"`
+	Credit      decimal.Decimal   `json:"credit" binding:"required"`
+	Debit       decimal.Decimal   `json:"debit" binding:"required"`
+	Balance     decimal.Decimal   `json:"balance"`
+	Timestamp   helpers.Timestamp `json:"timestamp" binding:"required"`
 }
 
 // PostAddCustomerTransactions appends transactions to transaction list
@@ -138,7 +138,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 			Credit:      ctr.Transactions[i].Credit,
 			Debit:       ctr.Transactions[i].Debit,
 			Balance:     ctr.Transactions[i].Balance,
-			DateTime:    ctr.Transactions[i].DateTime.Time,
+			DateTime:    ctr.Transactions[i].Timestamp.Time(),
 		})
 	}
 
