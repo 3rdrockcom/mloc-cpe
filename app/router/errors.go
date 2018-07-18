@@ -31,6 +31,8 @@ func (r *Router) appendErrorHandler() {
 			code = http.StatusForbidden
 		case Customer.ErrCustomerNotFound.Error():
 			code = http.StatusNotFound
+		case Customer.ErrInvalidData.Error():
+			code = http.StatusBadRequest
 
 		// Auth Middleware
 		case "missing key in request header":

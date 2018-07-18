@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/shopspring/decimal"
 )
 
@@ -57,14 +56,4 @@ type Transaction struct {
 // TableName gets the name of the database table
 func (t Transaction) TableName() string {
 	return "transactions"
-}
-
-// Validate checks if the values in the struct are valid
-func (t Transaction) Validate() error {
-	return validation.ValidateStruct(&t,
-		validation.Field(&t.CustomerID, validation.Required),
-		// validation.Field(&t.Credit, validation.Required),
-		// validation.Field(&t.Debit, validation.Required),
-		validation.Field(&t.DateTime, validation.Required),
-	)
 }

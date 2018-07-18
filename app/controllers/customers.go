@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
 	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
 	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
@@ -111,11 +111,34 @@ type CustomerTransactionsRequest struct {
 
 // CustomerTransactionRequest contains information about a transaction
 type CustomerTransactionRequest struct {
-	Description string            `json:"description" binding:"required"`
-	Credit      decimal.Decimal   `json:"credit" binding:"required"`
-	Debit       decimal.Decimal   `json:"debit" binding:"required"`
-	Balance     decimal.Decimal   `json:"balance"`
-	Timestamp   helpers.Timestamp `json:"timestamp" binding:"required"`
+	Description string          `json:"description" binding:"required"`
+	Type        string          `json:"type" binding:"required"`
+	Value       decimal.Decimal `json:"amount" binding:"required"`
+	Balance     decimal.Decimal `json:"balance"`
+	Timestamp   int64           `json:"timestamp" binding:"required"`
+}
+
+// Validate checks if the values in the struct are valid
+func (t CustomerTransactionRequest) Validate() error {
+	switch {
+	case t.Type == "credit" && t.Value.LessThan(decimal.Zero):
+		return Customer.ErrCreditNonPositiveValue
+
+	case t.Timestamp <= 0:
+		return Customer.ErrInvalidTimestamp
+
+	//
+	// case t.Credit.Equal(decimal.Zero) && t.Debit.Equal(decimal.Zero):
+	// 	return Customer.ErrCreditDebitRequired
+	// case !t.Credit.Equal(decimal.Zero) && !t.Debit.Equal(decimal.Zero):
+	// 	return Customer.ErrCreditDebitRequired
+	// case t.Credit.LessThan(decimal.Zero):
+	// 	return Customer.ErrCreditNonPositiveValue
+	case t.Timestamp <= 0:
+		return Customer.ErrInvalidTimestamp
+	}
+
+	return nil
 }
 
 // PostAddCustomerTransactions appends transactions to transaction list
@@ -126,25 +149,33 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	// Bind data to struct
 	ctr := CustomerTransactionsRequest{}
 	if err := c.Bind(&ctr); err != nil {
+		err = Customer.ErrInvalidData
+		return err
+	}
+
+	// Validate struct
+	if err := validation.Validate(ctr.Transactions); err != nil {
 		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
 	}
 
 	// Assign values to struct
 	transactions := models.Transactions{}
 	for i := range ctr.Transactions {
-		transactions = append(transactions, models.Transaction{
+		transaction := models.Transaction{
 			CustomerID:  customerID,
 			Description: ctr.Transactions[i].Description,
-			Credit:      ctr.Transactions[i].Credit,
-			Debit:       ctr.Transactions[i].Debit,
 			Balance:     ctr.Transactions[i].Balance,
-			DateTime:    ctr.Transactions[i].Timestamp.Time(),
-		})
-	}
+			DateTime:    time.Unix(ctr.Transactions[i].Timestamp, 0),
+		}
 
-	// Validate struct
-	if err := validation.Validate(transactions); err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		switch strings.ToUpper(ctr.Transactions[i].Type) {
+		case "CREDIT":
+			transaction.Credit = ctr.Transactions[i].Value
+		case "DEBIT":
+			transaction.Debit = ctr.Transactions[i].Value
+		}
+
+		transactions = append(transactions, transaction)
 	}
 
 	// Initialize customer service

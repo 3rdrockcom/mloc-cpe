@@ -11,4 +11,12 @@ var (
 
 	// ErrCustomerNotFound is an error for a non-existent customer
 	ErrCustomerNotFound = errors.New("Customer not found")
+
+	ErrInvalidData = errors.New("Payload contains invalid data")
+
+	ErrCreditDebitRequired = errors.New("Credit or debit is required")
+
+	ErrCreditNonPositiveValue = errors.New("Credit must be greater than 0")
+
+	ErrInvalidTimestamp = errors.New("Invalid timestamp")
 )
