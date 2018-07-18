@@ -1,9 +1,9 @@
 package services
 
 import (
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/database"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
+	"github.com/epointpayment/mloc-cpe/app/database"
+	"github.com/epointpayment/mloc-cpe/app/services/api"
+	"github.com/epointpayment/mloc-cpe/app/services/customer"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
 )

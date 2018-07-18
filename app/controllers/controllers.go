@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/helpers"
+	"github.com/epointpayment/mloc-cpe/app/helpers"
 
 	"github.com/labstack/echo"
 )

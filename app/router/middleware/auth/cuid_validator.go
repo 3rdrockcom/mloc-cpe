@@ -1,7 +1,7 @@
 package auth
 
 import (
-	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
+	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
 
 	"github.com/labstack/echo"
 )

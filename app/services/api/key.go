@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	"github.com/epointpayment/mloc-cpe/app/models"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/gommon/random"

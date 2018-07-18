@@ -4,7 +4,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/controllers"
+	"github.com/epointpayment/mloc-cpe/app/controllers"
 
 	"github.com/labstack/echo"
 )

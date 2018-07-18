@@ -3,9 +3,9 @@ package profiler
 import (
 	"sort"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler/classifier"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler/probability"
+	"github.com/epointpayment/mloc-cpe/app/models"
+	"github.com/epointpayment/mloc-cpe/app/services/profiler/classifier"
+	"github.com/epointpayment/mloc-cpe/app/services/profiler/probability"
 
 	"github.com/shopspring/decimal"
 )

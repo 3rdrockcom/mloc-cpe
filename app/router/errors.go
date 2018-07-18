@@ -3,9 +3,9 @@ package router
 import (
 	"net/http"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/controllers"
-	API "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/api"
-	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
+	"github.com/epointpayment/mloc-cpe/app/controllers"
+	API "github.com/epointpayment/mloc-cpe/app/services/api"
+	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
 
 	"github.com/labstack/echo"
 )

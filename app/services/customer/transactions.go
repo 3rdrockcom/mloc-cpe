@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
+	"github.com/epointpayment/mloc-cpe/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
 	"github.com/shopspring/decimal"

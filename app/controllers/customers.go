@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/models"
-	Customer "github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/customer"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services/profiler"
+	"github.com/epointpayment/mloc-cpe/app/models"
+	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
+	"github.com/epointpayment/mloc-cpe/app/services/profiler"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"

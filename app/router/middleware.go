@@ -3,7 +3,7 @@ package router
 import (
 	"strings"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/router/middleware/auth"
+	"github.com/epointpayment/mloc-cpe/app/router/middleware/auth"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"

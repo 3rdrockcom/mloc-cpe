@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/controllers"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/database"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/router"
-	"github.com/epointpayment/customerprofilingengine-demo-classifier-api/app/services"
+	"github.com/epointpayment/mloc-cpe/app/controllers"
+	"github.com/epointpayment/mloc-cpe/app/database"
+	"github.com/epointpayment/mloc-cpe/app/router"
+	"github.com/epointpayment/mloc-cpe/app/services"
 
 	"github.com/namsral/flag"
 )
