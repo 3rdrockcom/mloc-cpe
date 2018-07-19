@@ -2,6 +2,7 @@ package auth
 
 import (
 	API "github.com/epointpayment/mloc-cpe/app/services/api"
+	"github.com/juju/errors"
 
 	"github.com/labstack/echo"
 )
@@ -13,5 +14,8 @@ func BasicValidator(username, password string, c echo.Context) (isValid bool, er
 
 	// Check is user is authorized
 	isValid, err = sa.DoAuth(username, password)
+	if err != nil {
+		err = errors.Trace(err)
+	}
 	return
 }

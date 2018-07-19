@@ -10,6 +10,7 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/models"
 
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/juju/errors"
 	"github.com/labstack/gommon/random"
 )
 
@@ -40,6 +41,11 @@ func NewKey(programID int, programCustomerID int, programCustomerMobile string) 
 	}
 
 	err = k.Validate()
+	if err != nil {
+		err = errors.Trace(err)
+		return
+	}
+
 	return
 }
 
@@ -50,20 +56,23 @@ func (k *Key) GetCustomerKey() (customerKey Key, err error) {
 	as := New()
 
 	customer, err := as.GetCustomerByCustomerUniqueID(customerUniqueID)
-	if err == sql.ErrNoRows {
+	if errors.Cause(err) == sql.ErrNoRows {
 		entry, err := as.GetRegistrationKey()
 		if err != nil {
+			err = errors.Trace(err)
 			return customerKey, err
 		}
 		customerKey.ApiKey = entry.Key
 
 		return customerKey, nil
 	} else if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	entry, err := as.GetKeyByCustomerID(customer.ID)
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
@@ -80,17 +89,19 @@ func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	as := New()
 
 	_, err = as.GetCustomerByCustomerUniqueID(customerUniqueID)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && errors.Cause(err) != sql.ErrNoRows {
+		err = errors.Trace(err)
 		return
 	}
 
 	if err == nil {
-		err = ErrCustomerExists
+		err = errors.Wrap(err, ErrCustomerExists)
 		return
 	}
 
 	tx, err := DB.Begin()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
@@ -102,6 +113,7 @@ func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	}
 	err = tx.Model(customer).Insert()
 	if err != nil {
+		err = errors.Trace(err)
 		tx.Rollback()
 		return
 	}
@@ -113,12 +125,14 @@ func (k *Key) GenerateCustomerKey() (customerKey Key, err error) {
 	}
 	err = tx.Model(entry).Insert()
 	if err != nil {
+		err = errors.Trace(err)
 		tx.Rollback()
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
+		err = errors.Trace(err)
 		tx.Rollback()
 		return
 	}

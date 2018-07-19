@@ -12,29 +12,31 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/jinzhu/now"
+	"github.com/juju/errors"
 	"github.com/labstack/echo"
 	"github.com/shopspring/decimal"
 )
 
-// GetCustomer gets customer information
-func (co Controllers) GetCustomer(c echo.Context) error {
+// GetCustomer displays detailed customer information
+func (co *Controllers) GetCustomer(c echo.Context) (err error) {
 	// Get customer ID
 	customerID := c.Get("customerID").(int)
 
 	// Initialize customer service
 	sc, err := Customer.New(customerID)
 	if err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
-	// Get customer information
-	customer, err := sc.Info().GetDetails()
+	// Get detailed customer information
+	customerInfo, err := sc.Info().GetDetails()
 	if err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
-	// Send response
-	return SendResponse(c, http.StatusOK, customer)
+	return SendResponse(c, http.StatusOK, customerInfo)
 }
 
 // CustomerRequest contains information about a customer
@@ -56,14 +58,15 @@ func (c CustomerRequest) Validate() error {
 }
 
 // PostAddCustomer updates customer information
-func (co Controllers) PostAddCustomer(c echo.Context) error {
+func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 	// Get customer ID
 	customerID := c.Get("customerID").(int)
 
 	// Initialize customer service
 	sc, err := Customer.New(customerID)
 	if err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	cr := new(CustomerRequest)
@@ -72,12 +75,14 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 
 	// Bind data to struct
 	if err = c.Bind(cr); err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Validate struct
 	if err = cr.Validate(); err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Prepare customer information
@@ -96,8 +101,9 @@ func (co Controllers) PostAddCustomer(c echo.Context) error {
 	}
 
 	// Update information
-	if err = sc.Info().Update(customer, fields...); err != nil {
-		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+	if err = sc.Info().UpdateCustomerBasic(customer, fields...); err != nil {
+		err = errors.Trace(err)
+		return
 	}
 
 	// Send response
@@ -142,7 +148,7 @@ func (t CustomerTransactionRequest) Validate() error {
 }
 
 // PostAddCustomerTransactions appends transactions to transaction list
-func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
+func (co Controllers) PostAddCustomerTransactions(c echo.Context) (err error) {
 	// Get customer ID
 	customerID := c.Get("customerID").(int)
 
@@ -155,7 +161,8 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 
 	// Validate struct
 	if err := validation.Validate(ctr.Transactions); err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return err
 	}
 
 	// Assign values to struct
@@ -181,12 +188,14 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 	// Initialize customer service
 	sc, err := Customer.New(customerID)
 	if err != nil {
-		return err
+		err = errors.Trace(err)
+		return
 	}
 
 	// Insert new transactions
 	if err = sc.Transactions().Create(transactions); err != nil {
-		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Send response
@@ -194,7 +203,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) error {
 }
 
 // GetCustomerProfile generates a profile of a customer
-func (co Controllers) GetCustomerProfile(c echo.Context) error {
+func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 	// Get customer ID
 	customerID := c.Get("customerID").(int)
 
@@ -203,7 +212,8 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 		"20060102",
 		c.QueryParam("startDate"), time.UTC)
 	if err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Get transaction end date
@@ -211,19 +221,22 @@ func (co Controllers) GetCustomerProfile(c echo.Context) error {
 		"20060102",
 		c.QueryParam("endDate"), time.UTC)
 	if err != nil {
-		return SendErrorResponse(c, http.StatusBadRequest, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Initialize customer service
 	sc, err := Customer.New(customerID)
 	if err != nil {
-		return err
+		err = errors.Trace(err)
+		return
 	}
 
 	// Get all customer transaction within the specified range
 	transactions := models.Transactions{}
 	if transactions, err = sc.Transactions().GetAllByDateRange(startDate, now.New(endDate).EndOfDay()); err != nil {
-		return SendErrorResponse(c, http.StatusInternalServerError, err.Error())
+		err = errors.Trace(err)
+		return
 	}
 
 	// Initialize profiler service and run analysis

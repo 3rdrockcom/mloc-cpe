@@ -1,9 +1,11 @@
 package router
 
 import (
-	"strings"
-
+	"github.com/epointpayment/mloc-cpe/app/config"
+	"github.com/epointpayment/mloc-cpe/app/log"
 	"github.com/epointpayment/mloc-cpe/app/router/middleware/auth"
+	"github.com/epointpayment/mloc-cpe/app/router/middleware/logger"
+	"github.com/epointpayment/mloc-cpe/app/router/middleware/logger/logrus"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -11,9 +13,21 @@ import (
 
 // appendMiddleware registers middleware
 func (r *Router) appendMiddleware() {
-	r.e.Use(middleware.Gzip())
-	r.e.Use(middleware.Logger())
+	r.e.Use(middleware.RequestID())
 	r.e.Use(middleware.Recover())
+
+	// logger
+	r.e.Logger = logrus.New(log.DefaultLogger)
+	r.e.Use(logger.LoggerWithConfig(logger.LoggerConfig{
+		Logger: log.DefaultLogger,
+	}))
+
+	if config.IsDev() {
+		r.e.Use(middleware.BodyDump(func(c echo.Context, reqBody, resBody []byte) {
+			log.Debug("Request Body:\n" + string(reqBody))
+			log.Debug("Response Body:\n" + string(resBody))
+		}))
+	}
 }
 
 // mwBasicAuth handles the basic authentication for a specific route
@@ -47,13 +61,12 @@ func (r *Router) mwKeyAuth(authKeyType string) echo.MiddlewareFunc {
 // mwCUIDAuth handles the customer unique ID (CUID) authentication for a specific route
 func (r *Router) mwCUIDAuth(keyLookup string) echo.MiddlewareFunc {
 	// Check if keyLookup value looks valid
-	parts := strings.Split(keyLookup, ":")
-	if !(len(parts) == 2 && ((parts[0] == "query" || parts[0] == "form") && len(parts[1]) > 0)) {
+	if len(keyLookup) == 0 {
 		panic("invalid keyLookup used for middleware CUIDAuth validator")
 	}
 
 	return middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
-		KeyLookup:  keyLookup,
+		KeyLookup:  "query:" + keyLookup,
 		AuthScheme: "",
 		Validator:  auth.CUIDValidator,
 	})

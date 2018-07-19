@@ -1,0 +1,19 @@
+desc: fswatch
+triggers:
+- name: "watch"
+  pattens:
+  - '**/*.go'
+  - '.env.*'
+  env:
+  cmd: make clean && make build && make run-development OPTIONS=serve
+  shell: true
+  delay: 0ms
+  stop_timeout: 500ms
+  signal: KILL
+  kill_signal: "SIGTERM"
+watch_paths:
+- .
+watch_skips:
+- '!.git'
+- '!vendor'
+watch_depth: 100

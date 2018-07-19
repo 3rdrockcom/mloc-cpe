@@ -6,6 +6,7 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
+	"github.com/juju/errors"
 )
 
 // DB is the database handler
@@ -40,9 +41,12 @@ func (as *APIService) GetLoginKey() (entry *models.APIKey, err error) {
 		Where(dbx.HashExp{"key": "LOGIN"}).
 		One(entry)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = ErrInvalidAPIKey
+		if errors.Cause(err) == sql.ErrNoRows {
+			err = errors.Wrap(err, ErrInvalidAPIKey)
+			return
 		}
+
+		err = errors.Trace(err)
 		return nil, err
 	}
 
@@ -58,9 +62,12 @@ func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 		AndWhere(dbx.NewExp("`key`!={:key}", dbx.Params{"key": "LOGIN"})).
 		One(entry)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = ErrInvalidAPIKey
+		if errors.Cause(err) == sql.ErrNoRows {
+			err = errors.Wrap(err, ErrInvalidAPIKey)
+			return
 		}
+
+		err = errors.Trace(err)
 		return nil, err
 	}
 
@@ -71,9 +78,12 @@ func (as *APIService) GetRegistrationKey() (entry *models.APIKey, err error) {
 func (as *APIService) GetCustomerKey(key string) (entry *models.APIKey, err error) {
 	entry, err = as.GetKey(key)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = ErrInvalidAPIKey
+		if errors.Cause(err) == sql.ErrNoRows {
+			err = errors.Wrap(err, ErrInvalidAPIKey)
+			return
 		}
+
+		err = errors.Trace(err)
 		return nil, err
 	}
 
@@ -87,6 +97,10 @@ func (as *APIService) GetKey(key string) (entry *models.APIKey, err error) {
 	err = DB.Select().
 		Where(dbx.HashExp{"key": key}).
 		One(entry)
+	if err != nil {
+		err = errors.Trace(err)
+		return
+	}
 
 	return
 }
@@ -98,11 +112,15 @@ func (as *APIService) GetKeyByCustomerID(customerID int) (entry *models.APIKey, 
 	err = DB.Select().
 		Where(dbx.HashExp{"customer_id": customerID}).
 		One(entry)
+	if err != nil {
+		err = errors.Trace(err)
+		return
+	}
 
 	return
 }
 
-// GetCustomerByCustomerUniqueID gets an API key by customer unique ID
+// GetCustomerByCustomerUniqueID gets a customer information by customer unique ID
 func (as *APIService) GetCustomerByCustomerUniqueID(customerUniqueID string) (customer *models.Customer, err error) {
 	customer = new(models.Customer)
 
@@ -110,6 +128,7 @@ func (as *APIService) GetCustomerByCustomerUniqueID(customerUniqueID string) (cu
 		Where(dbx.HashExp{"cust_unique_id": customerUniqueID}).
 		One(customer)
 	if err != nil {
+		err = errors.Trace(err)
 		return nil, err
 	}
 
@@ -121,12 +140,14 @@ func (as *APIService) GetCustomerAccessKey(programID int, programCustomerID int,
 	// Initialize key service
 	customerKey, err := NewKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Get customer access key and customer unique ID
 	k, err = customerKey.GetCustomerKey()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
@@ -138,12 +159,14 @@ func (as *APIService) GenerateCustomerAccessKey(programID int, programCustomerID
 	// Initialize key service
 	customerKey, err := NewKey(programID, programCustomerID, programCustomerMobile)
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Get customer access key and customer unique ID
 	k, err = customerKey.GenerateCustomerKey()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 

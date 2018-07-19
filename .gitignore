@@ -2,4 +2,6 @@
 .directory
 
 # App
+.env.development
+.env.production
 mloc-cpe

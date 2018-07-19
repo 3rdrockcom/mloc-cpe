@@ -6,6 +6,7 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/models"
 
 	dbx "github.com/go-ozzo/ozzo-dbx"
+	"github.com/juju/errors"
 )
 
 // Info manages customer information
@@ -21,9 +22,12 @@ func (i *Info) Get() (customer *models.Customer, err error) {
 		Where(dbx.HashExp{"id": i.cs.CustomerID}).
 		One(customer)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = ErrCustomerNotFound
+		if errors.Cause(err) == sql.ErrNoRows {
+			err = errors.Wrap(err, ErrCustomerNotFound)
+			return
 		}
+
+		err = errors.Trace(err)
 		return nil, err
 	}
 
@@ -54,29 +58,37 @@ func (i *Info) GetDetails() (customerDetails *CustomerDetails, err error) {
 		Where(dbx.HashExp{"customers.id": i.cs.CustomerID}).
 		One(customerDetails)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			err = ErrCustomerNotFound
+		if errors.Cause(err) == sql.ErrNoRows {
+			err = errors.Wrap(err, ErrCustomerNotFound)
+			return
 		}
+
+		err = errors.Trace(err)
 		return nil, err
 	}
 
 	return
 }
 
-// Update updates customer information
-func (i *Info) Update(customer *models.Customer, fields ...string) (err error) {
+// UpdateCustomerBasic updates basic customer information
+func (i *Info) UpdateCustomerBasic(customerBasic *models.Customer, fields ...string) (err error) {
+	if len(fields) == 0 {
+		return
+	}
+
 	tx, err := DB.Begin()
 	if err != nil {
+		err = errors.Trace(err)
 		return err
 	}
 
-	customer.ID = i.cs.CustomerID
-	err = tx.Model(customer).Update(fields...)
+	customerBasic.ID = i.cs.CustomerID
+	err = tx.Model(customerBasic).Update(fields...)
 	if err != nil {
+		err = errors.Trace(err)
 		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
-	return nil
+	return tx.Commit()
 }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	API "github.com/epointpayment/mloc-cpe/app/services/api"
+	"github.com/juju/errors"
 
 	"github.com/labstack/echo"
 )
@@ -14,12 +15,13 @@ func CustomerValidator(key string, c echo.Context) (isValid bool, err error) {
 	// Get customer key
 	entry, err := sa.GetCustomerKey(key)
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Check if key is a match
 	if key != entry.Key {
-		err = API.ErrInvalidAPIKey
+		err = errors.Wrap(err, API.ErrInvalidAPIKey)
 		return
 	}
 
@@ -39,12 +41,13 @@ func RegistrationValidator(key string, c echo.Context) (isValid bool, err error)
 	// Get API key for registration
 	entry, err := sa.GetRegistrationKey()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Check if key is a match
 	if key != entry.Key {
-		err = API.ErrInvalidAPIKey
+		err = errors.Wrap(err, API.ErrInvalidAPIKey)
 		return
 	}
 
@@ -61,12 +64,13 @@ func LoginValidator(key string, c echo.Context) (isValid bool, err error) {
 	// Get API key for login
 	entry, err := sa.GetLoginKey()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Check if key is a match
 	if key != entry.Key {
-		err = API.ErrInvalidAPIKey
+		err = errors.Wrap(err, API.ErrInvalidAPIKey)
 		return
 	}
 

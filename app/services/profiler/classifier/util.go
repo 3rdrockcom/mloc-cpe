@@ -1,8 +1,7 @@
 package classifier
 
 import (
-	"errors"
-
+	"github.com/juju/errors"
 	"github.com/shopspring/decimal"
 )
 

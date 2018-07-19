@@ -1,5 +1,10 @@
 package models
 
+import (
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+)
+
 // Customers is an array of Customer entries
 type Customers []Customer
 
@@ -20,4 +25,13 @@ type Customer struct {
 // TableName gets the name of the database table
 func (c Customer) TableName() string {
 	return "customers"
+}
+
+// Validate checks if the values in the struct are valid
+func (c Customer) Validate() error {
+	return validation.ValidateStruct(&c,
+		validation.Field(&c.FirstName, validation.Required),
+		validation.Field(&c.LastName, validation.Required),
+		validation.Field(&c.Email, validation.Required, is.Email),
+	)
 }

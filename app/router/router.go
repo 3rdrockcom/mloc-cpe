@@ -2,11 +2,16 @@ package router
 
 import (
 	"net"
-	"os"
+	"net/http"
+	"strconv"
+	"time"
 
+	"github.com/epointpayment/mloc-cpe/app/config"
 	"github.com/epointpayment/mloc-cpe/app/controllers"
+	"github.com/epointpayment/mloc-cpe/app/log"
 
 	"github.com/labstack/echo"
+	"github.com/pseidemann/finish"
 )
 
 // Router manages the applications routing functions
@@ -19,8 +24,12 @@ type Router struct {
 func NewRouter(c *controllers.Controllers) *Router {
 	r := &Router{}
 
-	r.e = echo.New()
 	r.c = c
+
+	// Initialize router
+	r.e = echo.New()
+	r.e.Binder = new(CustomBinder)
+	r.e.HideBanner = true
 
 	r.appendMiddleware()
 	r.appendRoutes()
@@ -29,22 +38,32 @@ func NewRouter(c *controllers.Controllers) *Router {
 	return r
 }
 
-func (r *Router) Run() error {
-	// Get host information
-	host := ""
-	if os.Getenv("HOST") != "" {
-		host = os.Getenv("HOST")
-	}
-
-	//Get port information
-	port := "8080"
-	if os.Getenv("PORT") != "" {
-		port = os.Getenv("PORT")
-	}
+func (r *Router) Run() (err error) {
+	// Get config information
+	host := config.Get().Server.Host
+	port := strconv.FormatInt(config.Get().Server.Port, 10)
 
 	// Create an address for the router to use
-	address := net.JoinHostPort(host, port)
+	r.e.Server.Addr = net.JoinHostPort(host, port)
+
+	// Initialize graceful shutdown service
+	gracefully := &finish.Finisher{
+		Log:     log.DefaultLogger,
+		Timeout: 10 * time.Second,
+	}
+
+	// Add a server for gracious shutdown
+	gracefully.Add(r.e.Server)
 
 	// Start routing service
-	return r.e.Start(address)
+	go func() {
+		if err := r.e.Server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server with
+	// a timeout of 10 seconds.
+	gracefully.Wait()
+	return
 }

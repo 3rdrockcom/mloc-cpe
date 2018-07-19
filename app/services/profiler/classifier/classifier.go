@@ -1,7 +1,6 @@
 package classifier
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/services/profiler/ranks"
 
 	"github.com/jinzhu/now"
+	"github.com/juju/errors"
 	"github.com/montanaflynn/stats"
 	"github.com/shopspring/decimal"
 )
@@ -230,11 +230,13 @@ func (c *Classifier) getStatistics(input []decimal.Decimal) (float64, float64, e
 
 	mean, err := stats.Mean(data)
 	if err != nil {
+		err = errors.Trace(err)
 		return 0, 0, err
 	}
 
 	sd, err := stats.StandardDeviation(data)
 	if err != nil {
+		err = errors.Trace(err)
 		return 0, 0, err
 	}
 

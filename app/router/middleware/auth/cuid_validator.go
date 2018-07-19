@@ -2,6 +2,7 @@ package auth
 
 import (
 	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
+	"github.com/juju/errors"
 
 	"github.com/labstack/echo"
 )
@@ -14,18 +15,20 @@ func CUIDValidator(customerUniqueID string, c echo.Context) (isValid bool, err e
 	// Initialize customer service
 	sc, err := Customer.New(customerID)
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Get customer information
 	customer, err := sc.Info().Get()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
 	// Check if customer unique ID is a match
 	if customer.CustomerUniqueID != customerUniqueID {
-		err = Customer.ErrInvalidUniqueCustomerID
+		err = errors.Wrap(err, Customer.ErrInvalidUniqueCustomerID)
 		return
 	}
 

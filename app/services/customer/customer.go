@@ -3,6 +3,7 @@ package customer
 import (
 	dbx "github.com/go-ozzo/ozzo-dbx"
 	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/juju/errors"
 )
 
 // DB is the database handler
@@ -28,6 +29,7 @@ func New(customerID int) (cs *CustomerService, err error) {
 	cs.CustomerID = customerID
 	err = cs.Validate()
 	if err != nil {
+		err = errors.Trace(err)
 		return
 	}
 
