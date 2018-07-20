@@ -41,10 +41,10 @@ func (co *Controllers) GetCustomer(c echo.Context) (err error) {
 
 // CustomerRequest contains information about a customer
 type CustomerRequest struct {
-	FirstName    string `json:"first_name" form:"first_name" binding:"required"`
-	LastName     string `json:"last_name" form:"last_name" binding:"required"`
-	Email        string `json:"email" form:"email" binding:"required"`
-	MobileNumber string `json:"mobile_number" form:"mobile_number" binding:"required"`
+	FirstName    string `json:"first_name" form:"first_name"`
+	LastName     string `json:"last_name" form:"last_name"`
+	Email        string `json:"email" form:"email"`
+	MobileNumber string `json:"mobile_number" form:"mobile_number"`
 }
 
 // Validate checks if the values in the struct are valid
@@ -112,34 +112,33 @@ func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 
 // CustomerTransactionsRequest is a wrapper for transaction data
 type CustomerTransactionsRequest struct {
-	Transactions []CustomerTransactionRequest `json:"transactions" binding:"required"`
+	Transactions []CustomerTransactionRequest `json:"transactions"`
 }
 
 // CustomerTransactionRequest contains information about a transaction
 type CustomerTransactionRequest struct {
-	Description string          `json:"description" binding:"required"`
-	Type        string          `json:"type" binding:"required"`
-	Value       decimal.Decimal `json:"amount" binding:"required"`
+	Description string          `json:"description"`
+	Type        string          `json:"type"`
+	Value       decimal.Decimal `json:"amount"`
 	Balance     decimal.Decimal `json:"balance"`
-	Timestamp   int64           `json:"timestamp" binding:"required"`
+	Timestamp   int64           `json:"timestamp"`
 }
 
 // Validate checks if the values in the struct are valid
 func (t CustomerTransactionRequest) Validate() error {
+	err := validation.ValidateStruct(&t,
+		validation.Field(&t.Description, validation.Required),
+		validation.Field(&t.Type, validation.Required),
+		validation.Field(&t.Value, validation.Required),
+		validation.Field(&t.Timestamp, validation.Required),
+	)
+	if err != nil {
+		return err
+	}
+
 	switch {
 	case t.Type == "credit" && t.Value.LessThan(decimal.Zero):
 		return Customer.ErrCreditNonPositiveValue
-
-	case t.Timestamp <= 0:
-		return Customer.ErrInvalidTimestamp
-
-	//
-	// case t.Credit.Equal(decimal.Zero) && t.Debit.Equal(decimal.Zero):
-	// 	return Customer.ErrCreditDebitRequired
-	// case !t.Credit.Equal(decimal.Zero) && !t.Debit.Equal(decimal.Zero):
-	// 	return Customer.ErrCreditDebitRequired
-	// case t.Credit.LessThan(decimal.Zero):
-	// 	return Customer.ErrCreditNonPositiveValue
 	case t.Timestamp <= 0:
 		return Customer.ErrInvalidTimestamp
 	}

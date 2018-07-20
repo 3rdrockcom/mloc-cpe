@@ -44,10 +44,10 @@ func (t Transactions) Separator(p float64) []Transactions {
 // Transaction contains information about a transaction
 type Transaction struct {
 	ID             int             `json:"id"`
-	CustomerID     int             `json:"customer_id" binding:"required"`
-	Description    string          `json:"description" binding:"required"`
-	Credit         decimal.Decimal `json:"credit" binding:"required"`
-	Debit          decimal.Decimal `json:"debit" binding:"required"`
+	CustomerID     int             `json:"customer_id"`
+	Description    string          `json:"description"`
+	Credit         decimal.Decimal `json:"credit"`
+	Debit          decimal.Decimal `json:"debit"`
 	RunningBalance decimal.Decimal `json:"running_balance"`
 	Balance        decimal.Decimal `json:"balance"`
 	DateTime       time.Time       `json:"-" db:"datetime"`
