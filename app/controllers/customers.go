@@ -151,7 +151,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) (err error) {
 	// Bind data to struct
 	ctr := CustomerTransactionsRequest{}
 	if err := c.Bind(&ctr); err != nil {
-		err = Customer.ErrInvalidData
+		err = errors.Trace(Customer.ErrInvalidData)
 		return err
 	}
 
