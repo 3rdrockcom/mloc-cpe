@@ -6,7 +6,7 @@ import (
 
 	"github.com/epointpayment/mloc-cpe/app/models"
 	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
-	"github.com/epointpayment/mloc-cpe/app/services/profiler"
+	Profiler "github.com/epointpayment/mloc-cpe/app/services/profiler"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
@@ -111,16 +111,16 @@ func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 
 // CustomerTransactionsRequest is a wrapper for transaction data
 type CustomerTransactionsRequest struct {
-	Transactions []CustomerTransactionRequest `json:"transactions"`
+	Transactions []CustomerTransactionRequest `json:"transactions" form:"transactions"`
 }
 
 // CustomerTransactionRequest contains information about a transaction
 type CustomerTransactionRequest struct {
-	Description string          `json:"description"`
-	Type        string          `json:"type"`
-	Value       decimal.Decimal `json:"amount"`
-	Balance     decimal.Decimal `json:"balance"`
-	Date        string          `json:"date"`
+	Description string          `json:"description" form:"description"`
+	Type        string          `json:"type" form:"type"`
+	Value       decimal.Decimal `json:"amount" form:"amount"`
+	Balance     decimal.Decimal `json:"balance" form:"balance"`
+	Date        string          `json:"date" form:"date"`
 }
 
 // Validate checks if the values in the struct are valid
@@ -237,7 +237,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 	}
 
 	// Initialize profiler service and run analysis
-	p := profiler.New(transactions, profiler.DefaultPartitions)
+	p := Profiler.New(transactions, Profiler.DefaultPartitions)
 	res, err := p.Run()
 	if err != nil {
 		err = errors.Trace(err)
