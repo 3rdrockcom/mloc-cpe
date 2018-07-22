@@ -53,10 +53,6 @@
   name = "github.com/montanaflynn/stats"
   version = "0.2.0"
 
-[[constraint]]
-  name = "github.com/namsral/flag"
-  version = "1.7.4-pre"
-
 [prune]
   go-tests = true
   unused-packages = true
