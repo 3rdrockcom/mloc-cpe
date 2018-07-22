@@ -41,6 +41,11 @@ func (r Results) GetProbability(e int) decimal.Decimal {
 	}
 
 	for i := range data {
+		// Prevent division by zero error
+		if sum == 0 {
+			data[i] = 0
+			continue
+		}
 		data[i] = (data[i] / sum)
 	}
 
