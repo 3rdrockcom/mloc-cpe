@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/epointpayment/mloc-cpe/app/models"
-	"github.com/epointpayment/mloc-cpe/app/services/profiler/ranks"
 
 	"github.com/jinzhu/now"
 	"github.com/juju/errors"
@@ -15,17 +14,24 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Debug displays additional information
 var Debug bool
 
+// Precision is the default numerical precision for results
+var Precision int32 = 3
+
+// Classifier is a service that classifies a list of transactions
 type Classifier struct {
 	Transactions models.Transactions
 }
 
-func NewClassifier(t models.Transactions) (*Classifier, error) {
+// New creates an instance of the classifier service
+func New(t models.Transactions) (*Classifier, error) {
 	if len(t) == 0 {
 		return nil, errors.New("transactions required")
 	}
 
+	// Sort transactions by date
 	sort.Sort(t)
 
 	c := &Classifier{
@@ -34,11 +40,13 @@ func NewClassifier(t models.Transactions) (*Classifier, error) {
 	return c, nil
 }
 
-func (c *Classifier) Process() Results {
-	var listRank ranks.Ranks
-	var rank ranks.Rank
+// Process processes transactions to create a list of classifications
+func (c *Classifier) Process() (res Results, err error) {
+	var listRank Ranks
+	var rank Rank
 	var list = make(map[string]Credits)
 
+	// Process transactions and append results to list
 	buckets := []string{"monthly", "bimonthly", "weekly"}
 	for i := range buckets {
 		name := buckets[i]
@@ -49,13 +57,13 @@ func (c *Classifier) Process() Results {
 		switch name {
 		case "monthly":
 			list[name] = c.processMonthly()
-			rank = ranks.NewRank(name, c.calcRankValue(list[name]), 10)
+			rank = NewRank(name, c.calcRankValue(list[name]), 10)
 		case "bimonthly":
 			list[name] = c.processBiMonthly()
-			rank = ranks.NewRank(name, c.calcRankValue(list[name]), 20)
+			rank = NewRank(name, c.calcRankValue(list[name]), 20)
 		case "weekly":
 			list[name] = c.processWeekly()
-			rank = ranks.NewRank(name, c.calcRankValue(list[name]), 30)
+			rank = NewRank(name, c.calcRankValue(list[name]), 30)
 		}
 
 		if Debug {
@@ -64,9 +72,10 @@ func (c *Classifier) Process() Results {
 		listRank = append(listRank, rank)
 	}
 
+	// Sort rank in descending order (high to low)
 	sort.Sort(sort.Reverse(listRank))
 
-	res := Results{}
+	// Prepare results
 	for i := range listRank {
 		entry := Result{
 			Name:  listRank[i].Name,
@@ -76,19 +85,21 @@ func (c *Classifier) Process() Results {
 		res = append(res, entry)
 	}
 
-	return res
+	return
 }
 
+// processMonthly is a classification that processes transactions for a monthly interval
 func (c *Classifier) processMonthly() Credits {
 	t := c.Transactions
 
+	// Determine the date range
 	dateMin, dateMax := c.getDateRange()
 	dateRangeMin := now.New(dateMin).BeginningOfMonth()
 	dateRangeMax := now.New(dateMax).EndOfMonth()
 
 	list := make(Credits)
 
-	//
+	// Aggregate transactions by interval
 	for d := dateRangeMin; d.Before(dateRangeMax); d = d.AddDate(0, 1, 0) {
 		k, _ := strconv.Atoi(d.Format("20060102"))
 		list[k] = []Credit{}
@@ -106,16 +117,18 @@ func (c *Classifier) processMonthly() Credits {
 	return list
 }
 
+// processBiMonthly is a classification that processes transactions for a bimonthly interval
 func (c *Classifier) processBiMonthly() Credits {
 	t := c.Transactions
 
+	// Determine the date range
 	dateMin, dateMax := c.getDateRange()
 	dateRangeMin := now.New(dateMin).BeginningOfWeek()
 	dateRangeMax := now.New(dateMax).EndOfWeek()
 
 	list := make(Credits)
 
-	//
+	// Aggregate transactions by interval
 	for d := dateRangeMin; d.Before(dateRangeMax); d = d.AddDate(0, 0, 15) {
 		k, _ := strconv.Atoi(d.Format("20060102"))
 		list[k] = []Credit{}
@@ -133,16 +146,18 @@ func (c *Classifier) processBiMonthly() Credits {
 	return list
 }
 
+// processWeekly is a classification that processes transactions for a weekly interval
 func (c *Classifier) processWeekly() Credits {
 	t := c.Transactions
 
+	// Determine the date range
 	dateMin, dateMax := c.getDateRange()
 	dateRangeMin := now.New(dateMin).BeginningOfWeek()
 	dateRangeMax := now.New(dateMax).EndOfWeek()
 
 	list := make(Credits)
 
-	//
+	// Aggregate transactions by interval
 	for d := dateRangeMin; d.Before(dateRangeMax); d = d.AddDate(0, 0, 7) {
 		k, _ := strconv.Atoi(d.Format("20060102"))
 		list[k] = []Credit{}
@@ -160,6 +175,7 @@ func (c *Classifier) processWeekly() Credits {
 	return list
 }
 
+// calcRankValue calculates the score for a classification
 func (c *Classifier) calcRankValue(list Credits) float64 {
 	data := []decimal.Decimal{}
 
@@ -212,6 +228,7 @@ func (c *Classifier) calcRankValue(list Credits) float64 {
 	return rankValue
 }
 
+// getDateRange gets the date range for a list of transactions
 func (c *Classifier) getDateRange() (time.Time, time.Time) {
 	dateMin := c.Transactions[0].DateTime
 	dateMax := c.Transactions[len(c.Transactions)-1].DateTime
@@ -219,21 +236,25 @@ func (c *Classifier) getDateRange() (time.Time, time.Time) {
 	return dateMin, dateMax
 }
 
+// getStatistics calculate the mean and standard deviation from a list
 func (c *Classifier) getStatistics(input []decimal.Decimal) (float64, float64, error) {
 	var err error
 
+	// Create a list of values
 	data := []float64{}
 	for i := range input {
 		f, _ := input[i].Float64()
 		data = append(data, f)
 	}
 
+	// Calculate mean
 	mean, err := stats.Mean(data)
 	if err != nil {
 		err = errors.Trace(err)
 		return 0, 0, err
 	}
 
+	// Calculate standard deviation
 	sd, err := stats.StandardDeviation(data)
 	if err != nil {
 		err = errors.Trace(err)

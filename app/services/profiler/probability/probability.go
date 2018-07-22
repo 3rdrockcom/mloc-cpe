@@ -8,29 +8,38 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/services/profiler/probability/weekday"
 )
 
-var Debug bool
+// Precision is the default numerical precision for results
+var Precision int32 = 3
 
+// Probability is a service that calculates the probability
 type Probability struct {
 	Transactions models.Transactions
+	Precision    int32
 }
 
+// New creates an instance of the probability service
 func New(t models.Transactions) *Probability {
-	day.Debug = Debug
-	weekday.Debug = Debug
-
+	// Sort transactions by date
 	sort.Sort(t)
 
 	return &Probability{
 		Transactions: t,
+		Precision:    Precision,
 	}
 }
 
+// RunDay calculates the daily probability in a month
 func (p *Probability) RunDay() day.Results {
-	d := day.NewDay(p.Transactions)
+	d := day.New(p.Transactions)
+	d.Precision = p.Precision
+
 	return d.Run()
 }
 
+// RunWeekday calculates the weekday probability in a week
 func (p *Probability) RunWeekday() weekday.Results {
-	w := weekday.NewWeekday(p.Transactions)
+	w := weekday.New(p.Transactions)
+	w.Precision = p.Precision
+
 	return w.Run()
 }

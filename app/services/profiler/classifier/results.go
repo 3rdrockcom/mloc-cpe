@@ -6,8 +6,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Results is a list of classifier results
 type Results []Result
 
+// Result contains information about classifier entry
 type Result struct {
 	Name        string
 	Score       float64
@@ -15,14 +17,17 @@ type Result struct {
 	List        Credits
 }
 
-func (r Results) GetClassification(e int) Result {
-	classification := r[e]
+// GetClassification gets a classification result from the result set
+func (r Results) GetClassification(id int) Result {
+	classification := r[id]
 	return classification
 }
 
-func (r Results) GetProbability(e int) decimal.Decimal {
+// GetProbability calculates the probability for a result entry
+func (r Results) GetProbability(id int) decimal.Decimal {
 	data := make([]float64, len(r))
 
+	// Normalize scores, zero being the lowest value
 	minScore := 0.0
 	for i := range r {
 		score := r[i].Score
@@ -34,12 +39,14 @@ func (r Results) GetProbability(e int) decimal.Decimal {
 		data[i] = score
 	}
 
+	// Get the sum total of all the scores
 	sum := 0.0
 	for i := range data {
 		data[i] = data[i] - minScore
 		sum += data[i]
 	}
 
+	// Calculate the probability
 	for i := range data {
 		// Prevent division by zero error
 		if sum == 0 {
@@ -49,25 +56,29 @@ func (r Results) GetProbability(e int) decimal.Decimal {
 		data[i] = (data[i] / sum)
 	}
 
-	return decimal.NewFromFloat(data[e]).Round(3)
+	return decimal.NewFromFloat(data[id]).Round(Precision)
 }
 
-func (r Results) GetAveragePerInterval(e int) decimal.Decimal {
+// GetAveragePerInterval calculates the average result amount per interval
+func (r Results) GetAveragePerInterval(id int) decimal.Decimal {
 	data := []decimal.Decimal{}
 
-	classification := r[e]
+	classification := r[id]
 	list := classification.List
 
+	// Get list of intervals sorted by time
 	var keys []int
 	for k := range list {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
 
+	// Interate through each interval
 	for k := range keys {
 		i := keys[k]
 		sum := decimal.Zero
 
+		// Sum all the amounts in a particular interval
 		for j := range list[i] {
 			sum = sum.Add(list[i][j].Amount)
 		}
@@ -75,22 +86,26 @@ func (r Results) GetAveragePerInterval(e int) decimal.Decimal {
 		data = append(data, sum)
 	}
 
-	mean, _ := calcAvg(data)
-	return mean
+	// Calculate average
+	avg, _ := calcAvg(data)
+	return avg
 }
 
-func (r Results) GetAverage(e int) decimal.Decimal {
+// GetAverage calculates the average result amount
+func (r Results) GetAverage(id int) decimal.Decimal {
 	data := []decimal.Decimal{}
 
-	classification := r[e]
+	classification := r[id]
 	list := classification.List
 
+	// Create a list of all the amounts
 	for i := range list {
 		for j := range list[i] {
 			data = append(data, list[i][j].Amount)
 		}
 	}
 
-	mean, _ := calcAvg(data)
-	return mean
+	// Calculate average
+	avg, _ := calcAvg(data)
+	return avg
 }

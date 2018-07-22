@@ -6,45 +6,49 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var Debug bool
+// DefaultPrecision is the default numerical precision for results
+const DefaultPrecision int32 = 3
 
+// Day contains information required to calculate probabilities
 type Day struct {
-	t models.Transactions
+	Transactions models.Transactions
+	Precision    int32
 }
 
-func NewDay(t models.Transactions) *Day {
-	d := &Day{
-		t: t,
+// New creates an instance of the day probability service
+func New(transactions models.Transactions) *Day {
+	return &Day{
+		Transactions: transactions,
+		Precision:    DefaultPrecision,
 	}
-
-	return d
 }
 
+// Run executes the calculation
 func (d *Day) Run() Results {
 	return d.calc()
 }
 
+// calc calculates the probability for a particular day in a month
 func (d *Day) calc() Results {
 	list := make(Results, 31)
 
+	// Aggregate totals for each day in a month
 	count := 0
 	total := decimal.Zero
-	for i := range d.t {
-		day := d.t[i].DateTime.Day() - 1
+	for i := range d.Transactions {
+		day := d.Transactions[i].DateTime.Day() - 1
 
-		list[day].Day = d.t[i].DateTime.Day()
-		list[day].Total = list[day].Total.Add(d.t[i].Credit)
+		list[day].Day = d.Transactions[i].DateTime.Day()
+		list[day].Total = list[day].Total.Add(d.Transactions[i].Credit)
 		list[day].Count++
 
-		total = total.Add(d.t[i].Credit)
+		total = total.Add(d.Transactions[i].Credit)
 		count++
 	}
 
+	// Calculate probabilities
 	for i := range list {
-		entry := list[i]
-		entry.Probability = entry.Total.Div(total).Round(3)
-
-		list[i] = entry
+		list[i].Probability = list[i].Total.Div(total).Round(d.Precision)
 	}
 
 	return list

@@ -237,8 +237,12 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 	}
 
 	// Initialize profiler service and run analysis
-	p := profiler.New(transactions, 2)
-	res := p.Run()
+	p := profiler.New(transactions, profiler.DefaultPartitions)
+	res, err := p.Run()
+	if err != nil {
+		err = errors.Trace(err)
+		return
+	}
 
 	return SendResponse(c, http.StatusOK, res)
 }

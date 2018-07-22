@@ -6,45 +6,49 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-var Debug bool
+// DefaultPrecision is the default numerical precision for results
+const DefaultPrecision int32 = 3
 
+// Weekday contains information required to calculate probabilities
 type Weekday struct {
-	t models.Transactions
+	Transactions models.Transactions
+	Precision    int32
 }
 
-func NewWeekday(t models.Transactions) *Weekday {
-	w := &Weekday{
-		t: t,
+// New creates an instance of the weekday probability service
+func New(transactions models.Transactions) *Weekday {
+	return &Weekday{
+		Transactions: transactions,
+		Precision:    DefaultPrecision,
 	}
-
-	return w
 }
 
+// Run executes the calculation
 func (w *Weekday) Run() Results {
 	return w.calc()
 }
 
+// calc calculates the probability for a particular weekday in a week
 func (w *Weekday) calc() Results {
 	list := make(Results, 7)
 
+	// Aggregate totals for each day in a week
 	count := 0
 	total := decimal.Zero
-	for i := range w.t {
-		weekday := int(w.t[i].DateTime.Weekday())
+	for i := range w.Transactions {
+		weekday := int(w.Transactions[i].DateTime.Weekday())
 
-		list[weekday].Weekday = w.t[i].DateTime.Weekday()
-		list[weekday].Total = list[weekday].Total.Add(w.t[i].Credit)
+		list[weekday].Weekday = w.Transactions[i].DateTime.Weekday()
+		list[weekday].Total = list[weekday].Total.Add(w.Transactions[i].Credit)
 		list[weekday].Count++
 
-		total = total.Add(w.t[i].Credit)
+		total = total.Add(w.Transactions[i].Credit)
 		count++
 	}
 
+	// Calculate probabilities
 	for i := range list {
-		entry := list[i]
-		entry.Probability = entry.Total.Div(total).Round(3)
-
-		list[i] = entry
+		list[i].Probability = list[i].Total.Div(total).Round(w.Precision)
 	}
 
 	return list
