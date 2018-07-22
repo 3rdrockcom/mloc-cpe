@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/epointpayment/mloc-cpe/app/models"
@@ -121,16 +120,16 @@ type CustomerTransactionRequest struct {
 	Type        string          `json:"type"`
 	Value       decimal.Decimal `json:"amount"`
 	Balance     decimal.Decimal `json:"balance"`
-	Timestamp   int64           `json:"timestamp"`
+	Date        string          `json:"date"`
 }
 
 // Validate checks if the values in the struct are valid
 func (t CustomerTransactionRequest) Validate() error {
 	err := validation.ValidateStruct(&t,
 		validation.Field(&t.Description, validation.Required),
-		validation.Field(&t.Type, validation.Required),
+		validation.Field(&t.Type, validation.Required, validation.In("credit", "debit")),
 		validation.Field(&t.Value, validation.Required),
-		validation.Field(&t.Timestamp, validation.Required),
+		validation.Field(&t.Date, validation.Required, validation.Date("2006-01-02 15:04:05")),
 	)
 	if err != nil {
 		return err
@@ -139,8 +138,6 @@ func (t CustomerTransactionRequest) Validate() error {
 	switch {
 	case t.Type == "credit" && t.Value.LessThan(decimal.Zero):
 		return Customer.ErrCreditNonPositiveValue
-	case t.Timestamp <= 0:
-		return Customer.ErrInvalidTimestamp
 	}
 
 	return nil
@@ -171,13 +168,14 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) (err error) {
 			CustomerID:  customerID,
 			Description: ctr.Transactions[i].Description,
 			Balance:     ctr.Transactions[i].Balance,
-			DateTime:    time.Unix(ctr.Transactions[i].Timestamp, 0),
 		}
 
-		switch strings.ToUpper(ctr.Transactions[i].Type) {
-		case "CREDIT":
+		transaction.DateTime, _ = time.Parse("2006-01-02 15:04:05", ctr.Transactions[i].Date)
+
+		switch ctr.Transactions[i].Type {
+		case "credit":
 			transaction.Credit = ctr.Transactions[i].Value
-		case "DEBIT":
+		case "debit":
 			transaction.Debit = ctr.Transactions[i].Value
 		}
 
