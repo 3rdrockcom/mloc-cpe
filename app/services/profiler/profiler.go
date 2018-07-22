@@ -17,9 +17,12 @@ import (
 // DefaultPartitions is the number of partitions to split transactions
 const DefaultPartitions = 2
 
+// Precision is the default numerical precision for results
+const Precision int32 = 3
+
 func init() {
-	classifier.Precision = 5
-	probability.Precision = 5
+	classifier.Precision = Precision
+	probability.Precision = Precision
 }
 
 // Profiler is a service that profiles a customer's transactions to find an optimal interval
