@@ -18,6 +18,14 @@
   version = "v3.2.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:cbd510bcc79bda2940d8f513ab038d6852e99aa4c77dfcaa57f3a44fda3dffb4"
+  name = "github.com/fiskeben/packr-source-driver"
+  packages = ["driver"]
+  pruneopts = "UT"
+  revision = "46150a31aa0818f425aa9517f00f2ca14750042d"
+
+[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -34,7 +42,7 @@
   version = "v1.0.15"
 
 [[projects]]
-  digest = "1:9cb8a77408f7b0d7cfecb0937f1c9af2333b5c1e1e7ba23b3c06c626ac1940d7"
+  digest = "1:6b1aa7d73fca5dda0fa6148d87599bdf699176570f5cd97a812621b1e8473db9"
   name = "github.com/go-ozzo/ozzo-validation"
   packages = [
     ".",
@@ -45,16 +53,37 @@
   version = "v3.3"
 
 [[projects]]
-  digest = "1:850c49ca338a10fec2cb9e78f793043ed23965489d09e30bcc19fe29719da313"
+  digest = "1:adea5a94903eb4384abef30f3d878dc9ff6b6b5b0722da25b82e5169216dfb61"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a0583e0143b1624142adab07e0e97fe106d99561"
-  version = "v1.3.0"
+  revision = "d523deb1b23d913de5bdada721a6071e71283618"
+  version = "v1.4.0"
+
+[[projects]]
+  digest = "1:2155aded3b7f51598751f556d9a524d92b35ad4aa4bb41f2d69a0f4ca76a5bfd"
+  name = "github.com/gobuffalo/packr"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "147bee9cde84aeca6693d1b1aedc595298f24d5b"
+  version = "v1.12.0"
+
+[[projects]]
+  digest = "1:890fb07e67545d0b48fe7c4b4070f37dc528c1d282fc29c63cc9781e22af360a"
+  name = "github.com/golang-migrate/migrate"
+  packages = [
+    ".",
+    "database",
+    "database/mysql",
+    "source",
+  ]
+  pruneopts = "UT"
+  revision = "e968e8a5f0fd43301a2e0ef025ce6db56eedb205"
+  version = "v3.4.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:ac64f01acc5eeea9dde40e326de6b6471e501392ec06524c3b51033aa50789bc"
+  digest = "1:a361611b8c8c75a1091f00027767f7779b29cb37c456a71b8f2604c88057ab40"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -96,7 +125,7 @@
   revision = "c7d06af17c68cd34c835053720b21f6549d9b0ee"
 
 [[projects]]
-  digest = "1:ed322f61bf6c6a69a378a856f60773e2d12285e8725fa47d1effa51076e5aef3"
+  digest = "1:87f801436ec4799e0e043ab348ff9f3e95b1b3761138158f0950ac67695cc272"
   name = "github.com/labstack/echo"
   packages = [
     ".",
@@ -107,7 +136,7 @@
   version = "3.3.5"
 
 [[projects]]
-  digest = "1:2d40813938edf9356f613097fca53fbdde387698c503ce665255a0a1007010fe"
+  digest = "1:89d3b2cc2e6542b111a2f35d76eb35d1bed03f65455ebdb66a2340653da4f8e1"
   name = "github.com/labstack/gommon"
   packages = [
     "bytes",
@@ -176,12 +205,12 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:65c6401efaeb147041aed03d5b18862ce666a54e4ce754ea6ddbfa5ddaa24b07"
-  name = "github.com/pressly/goose"
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "95600eb369b1f657efd54a401ab85d0647a1db80"
-  version = "v2.3.0"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
@@ -216,7 +245,7 @@
   version = "v1.0.6"
 
 [[projects]]
-  digest = "1:37ace7f35375adec11634126944bdc45a673415e2fcc07382d03b75ec76ea94c"
+  digest = "1:bd1ae00087d17c5a748660b8e89e1043e1e5479d0fea743352cda2f8dd8c4f84"
   name = "github.com/spf13/afero"
   packages = [
     ".",
@@ -235,7 +264,7 @@
   version = "v1.2.0"
 
 [[projects]]
-  digest = "1:872fa275c31e1f9db31d66fa9b1d4a7bb9a080ff184e6977da01f36bfbe07f11"
+  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
@@ -284,7 +313,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:df211faa2fe0a5c16ee19bd800b33d3f20dd651e4c07f00b6cf84a6a4695bcad"
+  digest = "1:76bb6c11b6da0f512129cc8f06420f97bdae10fa0b627383ba7cc0f5bd63b72f"
   name = "golang.org/x/crypto"
   packages = [
     "acme",
@@ -296,7 +325,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9f14317f6f15863d0342b7d6835513920bb44fc2c6932ed9cc4f3810c3932cbb"
+  digest = "1:105645ed366a17f9ed1007059f0d3506e73e2098f2a1e793ffa92917d6461060"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -306,7 +335,7 @@
   revision = "7c87d13f8e835d2fb3a70a2912c811ed0c1d241b"
 
 [[projects]]
-  digest = "1:038003d098ffc345c4c5c6d47bcc6920b2649ee0c0d557162e54e75c76cadf8b"
+  digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
   name = "golang.org/x/text"
   packages = [
     "internal/gen",
@@ -319,6 +348,14 @@
   pruneopts = "UT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
+
+[[projects]]
+  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
+  name = "google.golang.org/appengine"
+  packages = ["cloudsql"]
+  pruneopts = "UT"
+  revision = "b1f26356af11148e710935ed1ac8a7f5702c7612"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:168a5950229664ee3c0a8aac3f524ec6954bf3f4e23ca6a2e33b549b8ee16a57"
@@ -340,10 +377,14 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/fiskeben/packr-source-driver/driver",
     "github.com/go-ozzo/ozzo-dbx",
     "github.com/go-ozzo/ozzo-validation",
     "github.com/go-ozzo/ozzo-validation/is",
     "github.com/go-sql-driver/mysql",
+    "github.com/gobuffalo/packr",
+    "github.com/golang-migrate/migrate",
+    "github.com/golang-migrate/migrate/database/mysql",
     "github.com/jinzhu/now",
     "github.com/juju/errors",
     "github.com/labstack/echo",
@@ -352,7 +393,6 @@
     "github.com/labstack/gommon/random",
     "github.com/monoculum/formam",
     "github.com/montanaflynn/stats",
-    "github.com/pressly/goose",
     "github.com/pseidemann/finish",
     "github.com/rmg/iso4217",
     "github.com/shopspring/decimal",

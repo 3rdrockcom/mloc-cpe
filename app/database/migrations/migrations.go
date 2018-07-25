@@ -1,177 +1,191 @@
 package migrations
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/epointpayment/mloc-cpe/app/config"
+	"github.com/epointpayment/mloc-cpe/app/embed"
 	"github.com/epointpayment/mloc-cpe/app/log"
+	"github.com/gobuffalo/packr"
 
-	"github.com/pressly/goose"
+	packrdriver "github.com/fiskeben/packr-source-driver/driver"
+	"github.com/golang-migrate/migrate"
+	_ "github.com/golang-migrate/migrate/database/mysql" // Database driver used for migration
 )
 
-// Migration struct.
+// numLeadingZeros is the max number of filler digits for migrations (000001, 000002, 000003, ...)
+const numLeadingZeros = 6
+
+// Migration contains required information for performing migration operations
 type Migration struct {
-	db   *sql.DB
-	path string
+	database string
+	driver   string
+	dsn      string
+	path     string
+	ext      string
+	box      packr.Box
+	migrate  *migrate.Migrate
 }
 
 // Load will load migration and database information.
-func Load(database string) (*Migration, error) {
-	var migration = &Migration{
-		path: config.Get().Path.Migrations + string(os.PathSeparator) + database,
-	}
-	var err error
-
-	// check if database name is not empty
-	if database == "" {
-		return nil, errors.New("No database selected")
+func Load(database string) (m *Migration, err error) {
+	migrationsDir := config.Get().Path.Migrations
+	m = &Migration{
+		database: database,
+		path:     migrationsDir + string(os.PathSeparator) + database,
 	}
 
-	// get database configuration
-	var driver, dsn string
+	// Check if database name is not empty
+	if m.database == "" {
+		err = errors.New("No database selected")
+		return
+	}
 
-	// database found
-	if database == "default" {
+	// Database found
+	if m.database == "default" {
 		entry := config.Get().DB
-		driver = entry.Driver
-		dsn = entry.DSN
+		m.driver = entry.Driver
+		m.dsn = entry.DSN
 	}
 
-	if driver == "" || dsn == "" {
-		return nil, errors.New("database not found")
+	if m.driver == "" || m.dsn == "" {
+		err = errors.New("database not found")
+		return
 	}
 
-	if err := initGoose(driver); err != nil {
-		log.Fatalln(err)
+	// Check available drivers
+	switch m.driver {
+	case "mysql":
+		m.ext = "sql"
+	default:
+		err = fmt.Errorf("%q database driver not supported", m.driver)
+		return
 	}
 
-	// connect to database
-	migration.db, err = connect(driver, dsn)
-	if err != nil {
+	// Check migrations folder
+	if _, err := os.Stat(migrationsDir); os.IsNotExist(err) {
+		err = fmt.Errorf("migrations folder does not exist: %s", migrationsDir)
 		return nil, err
 	}
 
-	// create migrations folder
-	err = migration.CreateFolder()
+	// Get box
+	m.box, err = embed.Get(m.path)
 	if err != nil {
-		return nil, errors.New("unable to validate migrations folder: " + migration.path)
+		err = fmt.Errorf("box has not been configured for %s", m.database)
+		return
 	}
 
-	return migration, nil
-}
+	// Setup migration driver
+	migrateDriver, err := packrdriver.WithInstance(m.box)
+	if err != nil {
+		err = fmt.Errorf("failed to create migration data driver: %v", err)
+		return
+	}
 
-// initGoose prepares Goose migrations tool for use
-func initGoose(driver string) (err error) {
-	// select database dialect
-	switch driver {
-	case "postgres", "mysql", "sqlite3", "redshift":
-		if err := goose.SetDialect(driver); err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("%q driver not supported", driver)
+	// Setup migration source
+	m.migrate, err = migrate.NewWithSourceInstance("packr", migrateDriver, m.dsn)
+	if err != nil {
+		return
 	}
 
 	// Setup logger
-	goose.SetLogger(log.DefaultLogger)
+	m.migrate.Log = new(Logger)
 
 	return
 }
 
 // Unload will unload migration and database information.
-func (m *Migration) Unload() error {
-	err := disconnect(m.db)
-	return err
+func (m *Migration) Unload() (err error) {
+	if errSource, errDatabase := m.migrate.Close(); errSource != nil || errDatabase != nil {
+		return err
+	}
+	return
 }
 
 // CreateFolder will set the proper migrations folder.
-func (m *Migration) CreateFolder() error {
-	err := os.MkdirAll(m.path, 0766)
-	return err
+func (m *Migration) CreateFolder() (err error) {
+	log.Printf("migrations: creating migrations folder for currently selected")
+	err = os.MkdirAll(m.path, os.ModePerm)
+	return
 }
 
 //Status prints the status of all migrations.
-func (m *Migration) Status() error {
-	if err := goose.Run("status", m.db, m.path); err != nil {
-		return err
+func (m *Migration) Status() (err error) {
+	version, isDirty, err := m.migrate.Version()
+	if err != nil {
+		return
 	}
-	return nil
+
+	// Display migration information
+	fmt.Print(
+		fmt.Sprintf("\nMIGRATION STATUS\n"),
+		fmt.Sprintf("---\n"),
+		fmt.Sprintf("%-15s %v\n", "Version:", version),
+		fmt.Sprintf("%-15s %v\n", "Dirty:", isDirty),
+	)
+
+	return
 }
 
 // Up applies all available migrations.
-func (m *Migration) Up(step int) error {
-
+func (m *Migration) Up(step int) (err error) {
+	// Upgrade to specific migration
 	if step > 0 {
-		migrations, err := m.getMigrations()
-		if err != nil {
+		log.Printf("migrations: upgrading %d migration(s)", step)
+		if err := m.migrate.Steps(step); err != nil && err != migrate.ErrNoChange {
 			return err
 		}
 
-		for i := 0; i < step; i++ {
-			currentVersion, err := m.getCurrentVersion()
-			if err != nil {
-				return err
-			}
-
-			next, err := migrations.Next(currentVersion)
-			if err != nil {
-				if err == goose.ErrNoNextVersion {
-					return fmt.Errorf("no migration %v\n", currentVersion)
-				}
-				return err
-			}
-
-			if err = next.Up(m.db); err != nil {
-				return err
-			}
-		}
-	} else {
-		if err := goose.Run("up", m.db, m.path); err != nil {
-			return err
-		}
+		return
 	}
 
-	return nil
+	// Upgrade all migrations
+	log.Printf("migrations: upgrading to latest available migration")
+	if err := m.migrate.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	return
 }
 
 // Down rolls back a single migration from the current version.
-func (m *Migration) Down(step int) error {
+func (m *Migration) Down(step int) (err error) {
+	// Downgrade to specific migration
 	if step > 0 {
-		migrations, err := m.getMigrations()
-		if err != nil {
+		log.Printf("migrations: downgrading %d migration(s)", step)
+		if err := m.migrate.Steps(-1 * step); err != nil && err != migrate.ErrNoChange {
 			return err
 		}
 
-		for i := 0; i < step; i++ {
-			currentVersion, err := m.getCurrentVersion()
-			if err != nil {
-				return err
-			}
-
-			current, err := migrations.Current(currentVersion)
-			if err != nil {
-				return fmt.Errorf("no migration %v\n", currentVersion)
-			}
-
-			if err = current.Down(m.db); err != nil {
-				return err
-			}
-		}
-	} else {
-		if err := goose.Run("down", m.db, m.path); err != nil {
-			return err
-		}
+		return
 	}
 
-	return nil
+	// Downgrade all migrations
+	log.Printf("migrations: downgrading to oldest available migration")
+	if err := m.migrate.Down(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+
+	return
 }
 
 // Redo rolls back the most recently applied migration, then runs it again.
 func (m *Migration) Redo() error {
-	if err := goose.Run("redo", m.db, m.path); err != nil {
+	// Downgrade migration
+	log.Println("migrations: redo migration - step down [1/2]")
+	if err := m.Down(1); err != nil {
+		return err
+	}
+
+	// Upgrade migration
+	log.Println("migrations: redo migration - step up [2/2]")
+	if err := m.Up(1); err != nil {
 		return err
 	}
 
@@ -179,34 +193,118 @@ func (m *Migration) Redo() error {
 }
 
 // Create writes a new blank migration file.
-func (m *Migration) Create(name string) error {
+func (m *Migration) Create(name string) (err error) {
+	// Check if name is valid
 	if name == "" {
-		return errors.New("Please specify a name for the migration")
+		err = errors.New("Please specify a name for the migration")
+		return
 	}
 
-	if err := goose.Create(m.db, m.path, name, "go"); err != nil {
-		return err
+	// Create migrations folder for database
+	err = m.CreateFolder()
+	if err != nil {
+		return
 	}
 
-	return nil
+	// Determine the next version number
+	version, err := m.getNextVersion(m.box.List())
+	if err != nil {
+		return
+	}
+
+	// Create migration files
+	for _, direction := range []string{"up", "down"} {
+		// Determine filename
+		filename := fmt.Sprintf("%v%v_%v.%v.%v", m.path+string(os.PathSeparator), version, name, direction, m.ext)
+
+		// Create file
+		_, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+
+		log.Println("migrations: created migration file - " + filename)
+	}
+
+	return
 }
 
-// getCurrentVersion retrieves the current version for this database
-func (m *Migration) getCurrentVersion() (int64, error) {
-	currentVersion, err := goose.GetDBVersion(m.db)
+// Force sets a migration version.
+func (m *Migration) Force(version int) (err error) {
+	err = m.migrate.Force(version)
 	if err != nil {
-		return 0, err
+		return
 	}
 
-	return currentVersion, nil
+	log.Println("migrations: set migration version to " + strconv.FormatInt(int64(version), 10))
+	return
 }
 
-// getMigrations returns all the valid migration scripts in the migrations folder
-func (m *Migration) getMigrations() (goose.Migrations, error) {
-	migrations, err := goose.CollectMigrations(m.path, int64(0), int64((1<<63)-1))
-	if err != nil {
-		return nil, err
+func (m *Migration) getNextVersion(filenames []string) (nextVersion string, err error) {
+
+	// Check if digit padding is a positive number
+	if numLeadingZeros <= 0 {
+		err = errors.New("Number of leading zeros must be a positive number")
+		return
 	}
 
-	return migrations, nil
+	// Determine next version increment
+	version := 1
+	if len(filenames) > 0 {
+
+		// Setup migration format pattern
+		r, err := regexp.Compile(`^(\d{` + strconv.FormatInt(numLeadingZeros, 10) + `})\_(\S+)\.(\S+)\.` + m.ext + `$`)
+		if err != nil {
+			return "", err
+		}
+
+		// Check if filenames are valid and add to list
+		migrations := []string{}
+		for i, filename := range filenames {
+			filename = strings.TrimPrefix(filename, m.path)
+			match := r.MatchString(filename)
+			if !match {
+				err = errors.New("Malformed migration filename: " + filename)
+				return "", err
+			}
+
+			migrations = append(migrations, filenames[i])
+		}
+
+		// Sort list of migrations
+		sort.Strings(migrations)
+
+		// Get last file name in list (most recent migration)
+		migration := migrations[len(migrations)-1]
+
+		// Check if migration filename is valid
+		versionStr := r.FindStringSubmatch(migration)[1]
+
+		// Convert the version string to an integer
+		version, err = strconv.Atoi(versionStr)
+		if err != nil {
+			return "", err
+		}
+
+		// Increment the current version to the next version
+		version++
+	}
+	if version <= 0 {
+		err = errors.New("Next sequence number must be positive")
+		return
+	}
+
+	// Check if the next version will hit sequence limit (leading zero)
+	nextVersion = strconv.Itoa(version)
+	if len(nextVersion) > numLeadingZeros {
+		return "", fmt.Errorf("Next sequence number %s too large. At most %d digits are allowed", nextVersion, numLeadingZeros)
+	}
+
+	// Prepend zeros
+	padding := numLeadingZeros - len(nextVersion)
+	if padding > 0 {
+		nextVersion = strings.Repeat("0", padding) + nextVersion
+	}
+
+	return
 }

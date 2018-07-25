@@ -17,14 +17,14 @@ LD_FLAGS=-ldflags="-X github.com/epointpayment/mloc-cpe/app/config.Version=$(VER
 
 # Builds project
 $(TARGET):
-	go build $(LD_FLAGS) -o $(TARGET)
+	packr build $(LD_FLAGS) -o $(TARGET)
 
 build: $(TARGET)
 	@true
 
 # Installs project: copies binary
 install:
-	go install $(LD_FLAGS) -o $(TARGET)
+	packr install $(LD_FLAGS) -o $(TARGET)
 
 # Cleans project: deletes binary
 clean:
@@ -35,6 +35,7 @@ deps:
 	go get
 	go get github.com/joho/godotenv/cmd/godotenv
 	go get github.com/codeskyblue/fswatch
+	go get github.com/gobuffalo/packr/...
 	go get -u github.com/golang/dep/cmd/dep
 	
 # Vendor project dependencies

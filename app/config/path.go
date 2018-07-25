@@ -4,6 +4,9 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
+// PathMigrations is the location where database migrations are located
+const PathMigrations = "app/migrations"
+
 // Path contains path information
 type Path struct {
 	Migrations string
@@ -22,7 +25,7 @@ func (c Path) Validate() (err error) {
 func newPath() (c Path, err error) {
 	// Get values and assign
 	c = Path{
-		Migrations: "app/migrations",
+		Migrations: PathMigrations,
 	}
 
 	// Validate
