@@ -12,12 +12,17 @@ import (
 	"github.com/epointpayment/mloc-cpe/app/config"
 	"github.com/epointpayment/mloc-cpe/app/embed"
 	"github.com/epointpayment/mloc-cpe/app/log"
-	"github.com/gobuffalo/packr"
 
 	packrdriver "github.com/fiskeben/packr-source-driver/driver"
+	"github.com/gobuffalo/packr"
 	"github.com/golang-migrate/migrate"
-	_ "github.com/golang-migrate/migrate/database/mysql" // Database driver used for migration
+	"github.com/golang-migrate/migrate/database/mysql"
 )
+
+func init() {
+	// Set migrations table
+	mysql.DefaultMigrationsTable = "migrations"
+}
 
 // numLeadingZeros is the max number of filler digits for migrations (000001, 000002, 000003, ...)
 const numLeadingZeros = 6
@@ -261,6 +266,12 @@ func (m *Migration) getNextVersion(filenames []string) (nextVersion string, err 
 		// Check if filenames are valid and add to list
 		migrations := []string{}
 		for i, filename := range filenames {
+			// Ignore non-migration files
+			if !strings.HasSuffix(filename, m.ext) {
+				continue
+			}
+
+			// Check if filename matches migration format pattern
 			filename = strings.TrimPrefix(filename, m.path)
 			match := r.MatchString(filename)
 			if !match {
@@ -268,6 +279,7 @@ func (m *Migration) getNextVersion(filenames []string) (nextVersion string, err 
 				return "", err
 			}
 
+			// Add to migrations file list
 			migrations = append(migrations, filenames[i])
 		}
 

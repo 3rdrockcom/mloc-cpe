@@ -12,11 +12,15 @@ BUILD=`git rev-parse HEAD`
 # Setup the -ldflags option for go build here, interpolate the variable values
 LD_FLAGS=-ldflags="-X github.com/epointpayment/mloc-cpe/app/config.Version=$(VERSION) -X github.com/epointpayment/mloc-cpe/app/config.Build=$(BUILD)"
 
+# Directories required for bindata/embedded data
+EMBED=app/migrations/default
+
 # Ignore phony targets
 .PHONY: build install clean deps vendor run run-development run-production run-watch
 
 # Builds project
 $(TARGET):
+	mkdir -p $(EMBED)
 	packr build $(LD_FLAGS) -o $(TARGET)
 
 build: $(TARGET)
