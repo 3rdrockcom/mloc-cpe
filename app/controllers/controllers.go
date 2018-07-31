@@ -38,8 +38,8 @@ func SendOKResponse(c echo.Context, res codes.Code) (err error) {
 	err = c.JSON(res.StatusCode, helpers.H{
 		"status":        true,
 		"response_code": res.StatusCode,
-		"code":          res.Name,
-		"message":       res.Message,
+		// "code":          res.Name,
+		"message": res.Message,
 	})
 	if err != nil {
 		err = errors.Trace(err)
@@ -53,8 +53,8 @@ func SendErrorResponse(c echo.Context, res codes.Code) (err error) {
 	err = c.JSON(res.StatusCode, helpers.H{
 		"status":        false,
 		"response_code": res.StatusCode,
-		"code":          res.Name,
-		"error":         res.Message,
+		// "code":          res.Name,
+		"error": res.Message,
 	})
 	if err != nil {
 		err = errors.Trace(err)
