@@ -21,14 +21,18 @@ EMBED=app/migrations/default
 # Builds project
 $(TARGET):
 	mkdir -p $(EMBED)
-	packr build $(LD_FLAGS) -o $(TARGET)
+	packr -z
+	go build $(LD_FLAGS) -o $(TARGET)
+	packr clean
 
 build: $(TARGET)
 	@true
 
 # Installs project: copies binary
 install:
-	packr install $(LD_FLAGS) -o $(TARGET)
+	packr -z
+	go install $(LD_FLAGS) -o $(TARGET)
+	packr clean
 
 # Cleans project: deletes binary
 clean:
