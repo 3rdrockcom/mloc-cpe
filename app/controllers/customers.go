@@ -151,13 +151,13 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) (err error) {
 	// Bind data to struct
 	ctr := CustomerTransactionsRequest{}
 	if err := c.Bind(&ctr); err != nil {
-		err = errors.Trace(Customer.ErrInvalidData)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
 		return err
 	}
 
 	// Validate struct
 	if err := validation.Validate(ctr.Transactions); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrInvalidData)
 		return err
 	}
 
@@ -191,7 +191,7 @@ func (co Controllers) PostAddCustomerTransactions(c echo.Context) (err error) {
 
 	// Insert new transactions
 	if err = sc.Transactions().Create(transactions); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
 		return
 	}
 
