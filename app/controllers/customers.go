@@ -209,7 +209,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 		"20060102",
 		c.QueryParam("startDate"), time.UTC)
 	if err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrInvalidDate)
 		return
 	}
 
@@ -218,7 +218,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 		"20060102",
 		c.QueryParam("endDate"), time.UTC)
 	if err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrInvalidDate)
 		return
 	}
 
@@ -232,7 +232,11 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 	// Get all customer transaction within the specified range
 	transactions := models.Transactions{}
 	if transactions, err = sc.Transactions().GetAllByDateRange(startDate, now.New(endDate).EndOfDay()); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
+		return
+	}
+	if len(transactions) == 0 {
+		err = errors.Wrap(err, Customer.ErrNoTransactionsAvailable)
 		return
 	}
 
@@ -240,7 +244,7 @@ func (co Controllers) GetCustomerProfile(c echo.Context) (err error) {
 	p := Profiler.New(transactions, Profiler.DefaultPartitions)
 	res, err := p.Run()
 	if err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
 		return
 	}
 

@@ -56,10 +56,17 @@ var (
 					InGroup("CUSTOMER").
 					RegisterError()
 
-	// ErrInvalidTimestamp is an error for invalid transaction timestamps
-	ErrInvalidTimestamp = codes.New("ERROR_CUSTOMER_TIMESTAMP_INVALID").
-				WithMessage("Invalid timestamp").
-				WithStatusCode(http.StatusBadRequest).
-				InGroup("CUSTOMER").
-				RegisterError()
+	// ErrInvalidDate is an error for invalid dates
+	ErrInvalidDate = codes.New("ERROR_CUSTOMER_DATE_INVALID").
+			WithMessage("Invalid date").
+			WithStatusCode(http.StatusBadRequest).
+			InGroup("CUSTOMER").
+			RegisterError()
+
+	// ErrCustomerNotFound is an error for a non-existent customer
+	ErrNoTransactionsAvailable = codes.New("ERROR_CUSTOMER_NO_TRANSACTIONS_AVAILABLE").
+					WithMessage("No transactions available").
+					WithStatusCode(http.StatusNotFound).
+					InGroup("CUSTOMER").
+					RegisterError()
 )
