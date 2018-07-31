@@ -1,3 +1,5 @@
+START TRANSACTION;
+
 CREATE TABLE `customers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `first_name` varchar(50) NOT NULL,
@@ -12,3 +14,5 @@ CREATE TABLE `customers` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `cust_unique_id` (`cust_unique_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+COMMIT;

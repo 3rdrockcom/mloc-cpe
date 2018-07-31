@@ -1,3 +1,5 @@
+START TRANSACTION;
+
 CREATE TABLE `transactions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL,
@@ -10,3 +12,5 @@ CREATE TABLE `transactions` (
   PRIMARY KEY (`id`),
   KEY `customer_id` (`customer_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+COMMIT;

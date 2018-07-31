@@ -1,3 +1,5 @@
+START TRANSACTION;
+
 CREATE TABLE `api_keys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `customer_id` int(11) NOT NULL,
@@ -10,3 +12,5 @@ CREATE TABLE `api_keys` (
 INSERT INTO `api_keys` (`id`, `customer_id`, `key`, `date_created`) VALUES
 (1, 0, 'LOGIN', NOW()),
 (2, 0, 'bd95200a60e47be9736970fd665f6195', NOW());
+
+COMMIT;

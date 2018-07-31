@@ -1,1 +1,5 @@
+START TRANSACTION;
+
 DROP TABLE IF EXISTS `transactions`;
+
+COMMIT;
