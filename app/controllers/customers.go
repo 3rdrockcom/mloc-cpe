@@ -74,13 +74,13 @@ func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 
 	// Bind data to struct
 	if err = c.Bind(cr); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
 		return
 	}
 
 	// Validate struct
 	if err = cr.Validate(); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrCustomerIncompleteInfo)
 		return
 	}
 
@@ -101,7 +101,7 @@ func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 
 	// Update information
 	if err = sc.Info().UpdateCustomerBasic(customer, fields...); err != nil {
-		err = errors.Trace(err)
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
 		return
 	}
 

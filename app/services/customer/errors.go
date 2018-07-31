@@ -21,6 +21,20 @@ var (
 				InGroup("CUSTOMER").
 				RegisterError()
 
+	// ErrCustomerIncompleteInfo is given if customerinformation is not complete
+	ErrCustomerIncompleteInfo = codes.New("ERROR_CUSTOMER_INFORMATION_INCOMPLETE").
+					WithMessage("Please provide complete customer information").
+					WithStatusCode(http.StatusBadRequest).
+					InGroup("CUSTOMER").
+					RegisterError()
+
+	// ErrProblemOccurred is given if it can't get data from database or can't covert input to string
+	ErrProblemOccurred = codes.New("ERROR_PROBLEM_OCCURRED").
+				WithMessage("Some problems occurred, please try again").
+				WithStatusCode(http.StatusBadRequest).
+				InGroup("CUSTOMER").
+				RegisterError()
+
 	// ErrInvalidData is an error for invalid payload data
 	ErrInvalidData = codes.New("ERROR_CUSTOMER_INVALID_DATA").
 			WithMessage("Payload contains invalid data").
