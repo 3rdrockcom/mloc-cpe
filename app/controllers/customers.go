@@ -209,7 +209,7 @@ func (t CustomerTransactionRequest) Validate() error {
 	err := validation.ValidateStruct(&t,
 		validation.Field(&t.Description, validation.Required),
 		validation.Field(&t.Type, validation.Required, validation.In("credit", "debit")),
-		validation.Field(&t.Value, validation.Required),
+		validation.Field(&t.Value, validation.Required, validation.By(helpers.ValidateCurrencyAmount)),
 		validation.Field(&t.Date, validation.Required, validation.Date("2006-01-02 15:04:05")),
 	)
 	if err != nil {

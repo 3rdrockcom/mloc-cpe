@@ -1,14 +1,11 @@
 package helpers
 
 import (
-	"encoding/json"
-	"errors"
-
 	"github.com/epointpayment/mloc-cpe/app/log"
 
+	"github.com/juju/errors"
 	"github.com/rmg/iso4217"
 	"github.com/shopspring/decimal"
-	null "gopkg.in/guregu/null.v3"
 )
 
 var (
@@ -37,26 +34,22 @@ func init() {
 }
 
 // ValidateCurrencyAmount is used by the validator to check if value is valid
-func ValidateCurrencyAmount(value interface{}) error {
-	var s string
-
-	switch value.(type) {
-	case null.String:
-		s = value.(null.String).String
-	case json.Number:
-		s = value.(json.Number).String()
-	}
-
-	dec, err := decimal.NewFromString(s)
-	if err != nil {
-		return err
-	}
-
-	if dec.Truncate(DefaultCurrencyPrecision).Equal(dec) {
-		if dec.GreaterThan(decimal.Zero) {
+func ValidateCurrencyAmount(value interface{}) (err error) {
+	if dec, ok := value.(decimal.Decimal); ok {
+		if isValidateCurrencyAmount(dec) {
 			return nil
 		}
 	}
 
-	return ErrInvalidCurrencyAmount
+	return errors.Trace(ErrInvalidCurrencyAmount)
+}
+
+func isValidateCurrencyAmount(dec decimal.Decimal) bool {
+	if dec.Truncate(DefaultCurrencyPrecision).Equal(dec) {
+		// if dec.GreaterThan(decimal.Zero) {
+		return true
+		// }
+	}
+
+	return false
 }
