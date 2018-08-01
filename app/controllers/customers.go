@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/epointpayment/mloc-cpe/app/helpers"
 	"github.com/epointpayment/mloc-cpe/app/models"
 	Customer "github.com/epointpayment/mloc-cpe/app/services/customer"
 	Profiler "github.com/epointpayment/mloc-cpe/app/services/profiler"
@@ -107,6 +108,86 @@ func (co Controllers) PostAddCustomer(c echo.Context) (err error) {
 
 	// Send response
 	return SendOKResponse(c, Customer.MsgInfoUpdated)
+}
+
+// CustomerTransactionsResponse is a wrapper for transaction data
+type CustomerTransactionsResponse struct {
+	Transactions []CustomerTransactionResponse `json:"transactions"`
+}
+
+// CustomerTransactionResponse contains information about a transaction
+type CustomerTransactionResponse struct {
+	Type           string `json:"type"`
+	Description    string `json:"description"`
+	Value          string `json:"amount"`
+	Balance        string `json:"balance"`
+	RunningBalance string `json:"running_balance"`
+	Date           string `json:"date"`
+}
+
+// GetCustomerProfile generates a profile of a customer
+func (co Controllers) GetCustomerTransactions(c echo.Context) (err error) {
+	// Get customer ID
+	customerID := c.Get("customerID").(int)
+
+	// Get transaction start date
+	startDate, err := time.ParseInLocation(
+		"20060102",
+		c.QueryParam("startDate"), time.UTC)
+	if err != nil {
+		err = errors.Wrap(err, Customer.ErrInvalidDate)
+		return
+	}
+
+	// Get transaction end date
+	endDate, err := time.ParseInLocation(
+		"20060102",
+		c.QueryParam("endDate"), time.UTC)
+	if err != nil {
+		err = errors.Wrap(err, Customer.ErrInvalidDate)
+		return
+	}
+
+	// Initialize customer service
+	sc, err := Customer.New(customerID)
+	if err != nil {
+		err = errors.Trace(err)
+		return
+	}
+
+	// Get all customer transaction within the specified range
+	transactions := models.Transactions{}
+	if transactions, err = sc.Transactions().GetAllByDateRange(startDate, now.New(endDate).EndOfDay()); err != nil {
+		err = errors.Wrap(err, Customer.ErrProblemOccurred)
+		return
+	}
+	if len(transactions) == 0 {
+		err = errors.Wrap(err, Customer.ErrNoTransactionsAvailable)
+		return
+	}
+
+	res := CustomerTransactionsResponse{}
+	for i := range transactions {
+		t := CustomerTransactionResponse{
+			Date:           transactions[i].DateTime.Format("2006-01-02 15:04:05"),
+			Description:    transactions[i].Description,
+			Balance:        transactions[i].Balance.StringFixed(helpers.DefaultCurrencyPrecision),
+			RunningBalance: transactions[i].RunningBalance.StringFixed(helpers.DefaultCurrencyPrecision),
+		}
+
+		switch {
+		case !transactions[i].Credit.IsZero():
+			t.Type = "credit"
+			t.Value = transactions[i].Credit.StringFixed(helpers.DefaultCurrencyPrecision)
+		case !transactions[i].Debit.IsZero():
+			t.Type = "debit"
+			t.Value = transactions[i].Debit.StringFixed(helpers.DefaultCurrencyPrecision)
+		}
+
+		res.Transactions = append(res.Transactions, t)
+	}
+
+	return SendResponse(c, http.StatusOK, res)
 }
 
 // CustomerTransactionsRequest is a wrapper for transaction data
