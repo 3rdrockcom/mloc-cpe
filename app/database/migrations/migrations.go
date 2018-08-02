@@ -73,12 +73,6 @@ func Load(database string) (m *Migration, err error) {
 		return
 	}
 
-	// Check migrations folder
-	if _, err := os.Stat(migrationsDir); os.IsNotExist(err) {
-		err = fmt.Errorf("migrations folder does not exist: %s", migrationsDir)
-		return nil, err
-	}
-
 	// Get box
 	m.box, err = embed.Get(m.path)
 	if err != nil {
